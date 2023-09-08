@@ -1,4 +1,8 @@
 
+# 不上传数据
 35POVs/
 35Targets/
 Debug/
+
+# 重要数据结果可以上传
+!35Targets/B1B/png/

@@ -64,16 +64,16 @@ def processForSingle(index_single, X, Y, Z, Intens, povname, IncidentAngle):
                     Intens1[i] = Intens1[i]/4
     elif povname == 'FJ':
         # background = 0.015*(np.sin(IncidentAngle * np.pi /180)/np.sin(40 * np.pi /180))**1.8
-        background = 0.005
+        background = 1e-4
         vz = max(Z1)
         for i in range(len(Z1)):
             if Z1[i] < 0.5:
                 # 如果这个点是地面的话，散射强度下降为0.00016，如果是目标的话，目标散射强度下降1/4
                 Intens1[i] = (1+np.random.rand(1)*0.1)*background
             elif Z1[i] > 1.1*vz/2:
-                Intens1[i] = (1+np.random.rand(1)*0.2)*0.005
+                Intens1[i] = (1+np.random.rand(1)*0.2)*1.5e-4
             else:
-                Intens1[i] = (1+np.random.rand(1)*0.1)*0.005
+                Intens1[i] = (1+np.random.rand(1)*0.1)*1.5e-4
     else:
         pass
     return X1, Y1, Z1, Intens1
@@ -113,9 +113,9 @@ def processForDouble(index_double, X, Y, Z, Intens, povname):
         # 飞机二次散射的处理方式
         for i in range(len(Intens2)):
             if Z2[i] < 0.5:
-                Intens2[i] = (1+np.random.rand(1)*0.1) * 0.005
+                Intens2[i] = (1+np.random.rand(1)*0.1) * 5e-4
             else:
-                Intens2[i] = (1+np.random.rand(1)*0.2)* 0.8
+                Intens2[i] = (1+np.random.rand(1)*0.2)* np.random.uniform(1e-2, 5e-2)
     else:
         pass
     return X2, Y2, Z2, Intens2
@@ -158,9 +158,9 @@ def  processForTriple(index_Triple, X, Y, Z, Intens, povname):
         # 飞机三次散射的处理方式
         for j in range(len(Intens3)):
             if Z3[j] < 0.5:
-                Intens3[j] = (1+np.random.rand(1)*0.1)*0.005
+                Intens3[j] = (1+np.random.rand(1)*0.1)*5e-4
             else:
-                Intens3[j] = (1+np.random.rand(1)*0.2) * 1.2
+                Intens3[j] = (1+np.random.rand(1)*0.2) * 5e-2
     else:
         pass
     return X3, Y3, Z3, Intens3
