@@ -113,9 +113,9 @@ def processForDouble(index_double, X, Y, Z, Intens, povname):
         # 飞机二次散射的处理方式
         for i in range(len(Intens2)):
             if Z2[i] < 0.5:
-                Intens2[i] = (1+np.random.rand(1)*0.1)*0.005
+                Intens2[i] = (1+np.random.rand(1)*0.1) * 0.005
             else:
-                Intens2[i] = (1+np.random.rand(1)*0.2)*0.8
+                Intens2[i] = (1+np.random.rand(1)*0.2)* 0.8
     else:
         pass
     return X2, Y2, Z2, Intens2
