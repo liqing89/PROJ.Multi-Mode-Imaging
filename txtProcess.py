@@ -64,16 +64,17 @@ def processForSingle(index_single, X, Y, Z, Intens, povname, IncidentAngle):
                     Intens1[i] = Intens1[i]/4
     elif povname == 'FJ':
         # background = 0.015*(np.sin(IncidentAngle * np.pi /180)/np.sin(40 * np.pi /180))**1.8
-        background = 1e-4
-        vz = max(Z1)
-        for i in range(len(Z1)):
-            if Z1[i] < 0.5:
-                # 如果这个点是地面的话，散射强度下降为0.00016，如果是目标的话，目标散射强度下降1/4
-                Intens1[i] = (1+np.random.rand(1)*0.1)*background
-            elif Z1[i] > 1.1*vz/2:
-                Intens1[i] = (1+np.random.rand(1)*0.2)*1.5e-4
-            else:
-                Intens1[i] = (1+np.random.rand(1)*0.1)*1.5e-4
+        # background = 5e-4
+        # vz = max(Z1)
+        # for i in range(len(Z1)):
+        #     if Z1[i] < 0.5:
+        #         # 如果这个点是地面的话，散射强度下降为0.00016，如果是目标的话，目标散射强度下降1/4
+        #         Intens1[i] = (1+np.random.rand(1)*0.1) * background
+        #     elif Z1[i] > 1.1*vz/2:
+        #         Intens1[i] = (1+np.random.rand(1)*0.2)* 1.1 * background
+        #     else:
+        #         Intens1[i] = (1+np.random.rand(1)*0.1)* 1.1 * background
+        pass
     else:
         pass
     return X1, Y1, Z1, Intens1
@@ -112,10 +113,19 @@ def processForDouble(index_double, X, Y, Z, Intens, povname):
     elif povname == 'FJ':
         # 飞机二次散射的处理方式
         for i in range(len(Intens2)):
-            if Z2[i] < 0.5:
-                Intens2[i] = (1+np.random.rand(1)*0.1) * 5e-4
-            else:
-                Intens2[i] = (1+np.random.rand(1)*0.2)* np.random.uniform(5e-2, 1e-3)
+            # if Z2[i] < 0.5:
+            #     Intens2[i] = (1+np.random.rand(1)*0.1) * 1e-4
+            # else:
+
+            # 非线性映射函数 用于拉伸低强度散射点强度 抑制过高散射点强度
+            # 经验值：beta次幂、分子系数
+            # 0.02 对于C17散射强度不够 调整到0.03
+            beta = 0.8
+            # Intens2[i] = Intens2[i] ** (beta * 1.1) * 0.04 /  ( Intens2[i] ** (beta) )
+            Intens2[i] = Intens2[i] * 0.06 /  ( Intens2[i] ** (beta) )
+            
+            # 散射强度低的时候 这里不能加入随机数 会引起类相干斑的躁点
+
     else:
         pass
     return X2, Y2, Z2, Intens2
@@ -156,11 +166,12 @@ def  processForTriple(index_Triple, X, Y, Z, Intens, povname):
                 Intens3[j] = (1+np.random.rand(1)*0.5)*0.008
     elif povname == 'FJ':
         # 飞机三次散射的处理方式
-        for j in range(len(Intens3)):
-            if Z3[j] < 0.5:
-                Intens3[j] = (1+np.random.rand(1)*0.1) * 5e-4
-            else:
-                Intens3[j] = (1+np.random.rand(1)*0.2) * 5e-2
+        # for j in range(len(Intens3)):
+        #     if Z3[j] < 0.5:
+        #         Intens3[j] = (1+np.random.rand(1)*0.1) * 1e-4
+        #     else:
+        #         Intens3[j] = (1+np.random.rand(1)*0.2) * 8e-2
+        pass
     else:
         pass
     return X3, Y3, Z3, Intens3
@@ -262,7 +273,7 @@ def txtProcess(params):
     X2, Y2, Z2, Intens2 = processForDouble(index_scatter2, X, Y, Z, Intens, target)
     X3, Y3, Z3, Intens3 = processForTriple(index_scatter3, X, Y, Z, Intens, target)
 
-    # # 查看3种散射次数分别的建模结果
+    # 查看3种散射次数分别的建模结果
     # electronics1 = np.dstack((Y1,-X1,Z1,Intens1))
     # electronics1 = np.squeeze(electronics1)
     # sio.savemat("/home/liq/pro/Debug/mat_1.mat", {"data": electronics1})
@@ -304,11 +315,11 @@ def txtProcess(params):
 if __name__ == "__main__":
     import scipy.io as sio
     # 电磁建模
-    pitchAngel = 20
+    pitchAngel = 40
     target = "FJ"
-    txtFile = "/home/liq/pro/35Targets/B1B/txt/Contributions_20_0_0.txt"
+    txtFile = "/home/liq/pro/35Targets/C17/txt/Contributions_40_0_0.txt"
     # resultMatFile = "/home/lij/PILIANGHUAEXPERIMENT/txtProcess_debug/test.mat"
-    txtProParams = [pitchAngel, 0, target, 'HH', 520, 300, txtFile]
+    txtProParams = [pitchAngel, 0, target, 'HH', 147, 95, txtFile]
     elecResult = txtProcess(txtProParams)
     # savedic = {"data": elecResult, "offNadiAng": pitchAngel}
     # savedic["data"] = np.array(savedic["data"], dtype="double")

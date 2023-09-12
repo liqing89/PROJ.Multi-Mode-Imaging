@@ -82,13 +82,19 @@ class imaging:
         Na_end = Na_start + int(self.azmScale/self.dazm)
         I = self.image[Na_start:Na_end,Nr_start:Nr_end]
 
+        # 裁剪
+        l = int(I.shape[1]/2 - I.shape[0]/2*0.8); r = int(I.shape[1]/2 + I.shape[0]/2*0.8)
+        u = int(I.shape[0]*0.1+1); d = int(I.shape[0]*0.9)
+        I = np.array(I[u:d,l:r])
+
         if mode == 1:
             # 条带模式下背景自适应量化
             I = np.abs(I) # 取图像幅值
             I = I/I.max() #归一化
-            I = 20*np.log10(np.abs(I)) #dB显示
-            I = np.clip(I,-60,0) #截断最值
-            I = (I + 60)/60*255 # 线性量化
+            # I = 20*np.log10(np.abs(I)) #dB显示
+            # I = np.clip(I,-60,0) #截断最值
+            # I = (I + 60)/60*255 # 线性量化
+            I = I * 255 # 线性量化
             sio.savemat(save_path,{'image':I.astype(np.uint8) }) #转成uint8输出
 
         elif mode == 2:
@@ -103,29 +109,30 @@ class imaging:
             # 1.线性映射 0到255
             # 对图像中低于阈值的强度值进行拉伸，将他们映射到0到255的强度范围内
             # 该图像会保留高亮点
-            I_1 = (I - p1) / (p99 - p1) * 255
+            # I_1 = (I - p1) / (p99 - p1) * 255
+            # I_1[0][0] = 255;
             # 使用伽马校正进一步增强对比度
-            I = (I/255)**(1/1.5)*255
+            # I_1 = (I/255)**(1/1)*255
 
             # 2.固定背景均值的量化值为bg_uint
-            # bg_uint = 60;
-            # mean_val = np.mean(I[np.logical_and(I>np.min(I)*10,I<np.max(I)*0.1)]) # 背景强度均值
-            # N = np.mean(np.round([bg_uint * (p99 - p1) / (mean_val -p1)])) # 按照背景固定为25灰度计算，图像灰度取值量化上下限为0-N
-            # M = I.max() 
-            # # 压缩量化映射范围
-            # I_2 = (I - p1) / (p99 - p1) * N # 将图像投影到0-N范围内
-            # I_2[0,0] = (M - p1) / (p99 - p1) * 255 #图像总量化范围为0-255不变
+            bg_uint = 40;
+            # mean_val = np.mean(I[np.logical_and(I>np.min(I)*10,I<np.max(I)*0.01)]) # 背景强度均值
+            mean_val = np.mean(I[0:75,0:75]);
+            N = np.mean(np.round([bg_uint * (p99 - p1) / (mean_val -p1)])) # 按照背景固定为bg_uint灰度计算，图像灰度取值量化上下限为0-N
+            M = I.max() 
+            # 压缩量化映射范围
+            I_2 = (I - p1) / (p99 - p1) * N # 将图像投影到0-N范围内
+            I_2[0,0] = (M - p1) / (p99 - p1) * 255 #图像总量化范围为0-255不变
             # I_2[I_1>np.max(I_1)*0.9] = (I_1[I_1>np.max(I_1)*0.9] - p1) / (p99 - p1) * 255 # 用线性映射的高亮点取代非线性映射
-
 
             # 上限截断
             # pct = 0.1
             # I = np.where(I > I.max()*pct, I.max()*pct, I)
 
-
+            # I_1 = 20*np.log10(np.abs(I_1)) #dB显示
 
             # 保存图像
-            sio.savemat(save_path,{'image':I_1.astype(np.uint8)})
+            sio.savemat(save_path,{'image':I_2.astype(np.uint8)})
 
 
     def imaging(self):
