@@ -63,7 +63,7 @@ def processForSingle(index_single, X, Y, Z, Intens, povname, IncidentAngle):
                 else:
                     Intens1[i] = Intens1[i]/4
     elif povname == 'FJ':
-        background = 0.0015*(np.cos(IncidentAngle * np.pi /180)/np.sin(50 * np.pi /180))**1.8
+        background = 0.0015*(np.cos(IncidentAngle * np.pi /180)/np.cos(50 * np.pi /180))**1.8
         # background = 5e-4
         vz = max(Z1)
         for i in range(len(Z1)):
