@@ -63,27 +63,28 @@ def processForSingle(index_single, X, Y, Z, Intens, povname, IncidentAngle):
                 else:
                     Intens1[i] = Intens1[i]/4
     elif povname == 'FJ':
-        # background = 0.015*(np.sin(IncidentAngle * np.pi /180)/np.sin(40 * np.pi /180))**1.8
-        background = 5e-4
+        background = 0.0015*(np.cos(IncidentAngle * np.pi /180)/np.sin(50 * np.pi /180))**1.8
+        # background = 5e-4
         vz = max(Z1)
-        # for i in range(len(Z1)):
-        #     if Z1[i] < 0.5:
-        #         # 如果这个点是地面的话，散射强度下降为0.00016，如果是目标的话，目标散射强度下降1/4
-        #         Intens1[i] = (1+np.random.rand(1)*0.1) * background
-        #     elif Z1[i] > 1.1*vz/2:
-        #         Intens1[i] = (1+np.random.rand(1)*0.2)* 1.1 * background
-        #     else:
-        #         Intens1[i] = (1+np.random.rand(1)*0.1)* 1.1 * background
-
-        # 隐身飞机
         for i in range(len(Z1)):
-            if Z1[i] < 0:
+            if Z1[i] < 0.1:
                 # 如果这个点是地面的话，散射强度下降为0.00016，如果是目标的话，目标散射强度下降1/4
                 Intens1[i] = (1+np.random.rand(1)*0.1) * background
             elif Z1[i] > 1.1*vz/2:
                 Intens1[i] = (1+np.random.rand(1)*0.2)* 0.8 * background
             else:
                 Intens1[i] = (1+np.random.rand(1)*0.1)* 0.9 * background
+
+        # 隐身飞机
+        # for i in range(len(Z1)):
+
+        #     if Z1[i] < 0:
+        #         # 如果这个点是地面的话，散射强度下降为0.00016，如果是目标的话，目标散射强度下降1/4
+        #         Intens1[i] = (1+np.random.rand(1)*0.1) * background
+        #     elif Z1[i] > 1.1*vz/2:
+        #         Intens1[i] = (1+np.random.rand(1)*0.2)* 0.8 * background
+        #     else:
+        #         Intens1[i] = (1+np.random.rand(1)*0.1)* 0.9 * background
         pass
     else:
         pass
@@ -131,8 +132,8 @@ def processForDouble(index_double, X, Y, Z, Intens, povname):
             # 经验值：beta次幂、分子系数
             # 0.02 对于C17散射强度不够 调整到0.03
             # 1. 正常飞机
-            # beta = 0.8
-            # Intens2[i] = Intens2[i] * 0.06 /  ( Intens2[i] ** (beta) ) # 0.6->0.8
+            beta = 0.8
+            Intens2[i] = Intens2[i] * 0.06 /  ( Intens2[i] ** (beta) ) # 0.6->0.8
             # 散射强度低的时候 这里不能加入随机数 会引起类相干斑的躁点
 
             # 2. 隐身飞机

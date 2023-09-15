@@ -149,7 +149,7 @@ class imaging:
             # I_2 = (I_2>p1) * (I_2 + ground) + (I_2<p1) * (I_2);
             # I_2[0,0] = 1;
             # I_2[rows-1,cols-1] = 0;
-            I_2 = I * 255;
+            I_2 = I * 1023;
 
 
 
@@ -160,7 +160,7 @@ class imaging:
             # I_1 = 20*np.log10(np.abs(I_1)) #dB显示
 
             # 保存图像
-            sio.savemat(save_path,{'image':I_2.astype(np.uint8)})
+            sio.savemat(save_path,{'image':I_2.astype(np.uint16)})
 
 
     def imaging(self):
