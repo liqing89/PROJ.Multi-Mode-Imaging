@@ -90,6 +90,7 @@ class imaging:
         if mode == 1:
             # 条带模式下背景自适应量化
             I = np.abs(I) # 取图像幅值
+            mean_val = np.mean(I[0:75,0:75]);
             I = I/I.max() #归一化
             # I = 20*np.log10(np.abs(I)) #dB显示
             # I = np.clip(I,-60,0) #截断最值
@@ -101,9 +102,10 @@ class imaging:
             # 用线性显示
             # date:2023-09-06
             I = np.abs(I) # 幅度
+            mean_val = np.mean(I[0:75,0:75]);
             I = I/I.max() #归一化
-            # 截断
-            p1, p99 = np.percentile(I, (1, 99))
+            # 截断0.5
+            p1, p99 = np.percentile(I, (1, 99.5))
             I = np.clip(I,p1,p99)
 
             # 1.线性映射 0到255
@@ -115,15 +117,41 @@ class imaging:
             # I_1 = (I/255)**(1/1)*255
 
             # 2.固定背景均值的量化值为bg_uint
-            bg_uint = 40;
+            # bg_uint = 80;
             # mean_val = np.mean(I[np.logical_and(I>np.min(I)*10,I<np.max(I)*0.01)]) # 背景强度均值
-            mean_val = np.mean(I[0:75,0:75]);
-            N = np.mean(np.round([bg_uint * (p99 - p1) / (mean_val -p1)])) # 按照背景固定为bg_uint灰度计算，图像灰度取值量化上下限为0-N
-            M = I.max() 
+            
+            # N = np.mean(np.round([bg_uint * (p99 - p1) / (mean_val -p1)])) # 按照背景固定为bg_uint灰度计算，图像灰度取值量化上下限为0-N
+            # M = I.max() 
             # 压缩量化映射范围
-            I_2 = (I - p1) / (p99 - p1) * N # 将图像投影到0-N范围内
-            I_2[0,0] = (M - p1) / (p99 - p1) * 255 #图像总量化范围为0-255不变
+            # I_2 = (I - p1) / (p99 - p1) * N # 将图像投影到0-N范围内
+            # I_2[0,0] = (M - p1) / (p99 - p1) * 255 #图像总量化范围为0-255不变
             # I_2[I_1>np.max(I_1)*0.9] = (I_1[I_1>np.max(I_1)*0.9] - p1) / (p99 - p1) * 255 # 用线性映射的高亮点取代非线性映射
+
+            # 3.直接线性压缩
+            # I_2 = 1.4 * I * np.exp(I);
+            # I_2 = I_2 + 0.157;
+            # I_2[0,0] = 1;
+            # I_2[0,1] = 0;
+            # I_2 = I_2 * 255
+
+            # 4.分段压缩+背景量化值固定映射
+            # I_2 = I;
+            # rows,cols = I.shape;
+            # threshold = 0.65;
+            # A = 0.7;
+            # ground = 0.3;
+            # for i in range (0,rows-1):
+            #     for j in range (0,cols-1):
+            #         if I[i,j] <= threshold :
+            #             I_2[i,j] = I[i,j]
+            #         elif I[i,j] > threshold :
+            #             I_2[i,j] = I[i,j] * np.exp( A * -(I[i,j]-0.2))
+            # I_2 = (I_2>p1) * (I_2 + ground) + (I_2<p1) * (I_2);
+            # I_2[0,0] = 1;
+            # I_2[rows-1,cols-1] = 0;
+            I_2 = I * 255;
+
+
 
             # 上限截断
             # pct = 0.1
