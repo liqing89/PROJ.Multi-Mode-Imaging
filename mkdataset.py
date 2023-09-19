@@ -48,7 +48,7 @@ def mkdataset(model_name, distribution, Ray, target, cut, scanMode, Rho, POV_fol
     mk_save_pov_floder = 'mkdir pov'
     result = subprocess.run(mk_save_pov_floder, shell=True, capture_output=True, text=True, cwd=main_folder, check=True)
 
-    for incidentAngle in range(20,55,40):
+    for incidentAngle in range(20,55,5):
         # 俯仰角设置
 
         # 根据下视角和方位角计算相机位置
@@ -109,7 +109,7 @@ def mkdataset(model_name, distribution, Ray, target, cut, scanMode, Rho, POV_fol
     mk_save_txt_floder = 'mkdir txt'
     result = subprocess.run(mk_save_txt_floder, shell=True, capture_output=True, text=True, cwd=main_folder, check=True)
 
-    for k in range(20,55,40):
+    for k in range(20,55,5):
         RayH_change = np.sqrt((RayH+1e6/np.cos(k/180 * np.pi))**2-(1e6)**2)-1e6/np.cos(k/180 * np.pi)*np.sin(k/180 * np.pi)
         for i in range(0,18,18):
             main_degree = 20*i
@@ -130,7 +130,7 @@ def mkdataset(model_name, distribution, Ray, target, cut, scanMode, Rho, POV_fol
     mk_save_mat_floder = 'mkdir mat'
     result = subprocess.run(mk_save_mat_floder, shell=True, capture_output=True, text=True, cwd=main_folder, check=True)
 
-    for k in range(20,55,40):
+    for k in range(20,55,5):
         x_cut_change = np.sqrt((x_cut+1e6/np.cos(k/180 * np.pi))**2-(1e6)**2)-1e6/np.cos(k/180 * np.pi)*np.sin(k/180 * np.pi)
         for i in range(0,18,18):
             main_degree = 20*i
@@ -150,7 +150,7 @@ def mkdataset(model_name, distribution, Ray, target, cut, scanMode, Rho, POV_fol
     mk_save_echo_floder = 'mkdir echo'
     result = subprocess.run(mk_save_echo_floder, shell=True, capture_output=True, text=True, cwd=main_folder, check=True)
 
-    for k in range(20,55,40):
+    for k in range(20,55,5):
         for i in range(0,18,18):
             for j in range(1):
                 main_degree = 20*i
@@ -241,7 +241,7 @@ def mkdataset(model_name, distribution, Ray, target, cut, scanMode, Rho, POV_fol
     mk_save_img_floder = 'mkdir img'
     result = subprocess.run(mk_save_img_floder, shell=True, capture_output=True, text=True, cwd=main_folder, check=True)
 
-    for k in range(20,55,40):
+    for k in range(20,55,5):
         for i in range(0,18,18):
             for j in range(1):
                 main_degree = 20*i
@@ -258,7 +258,7 @@ def mkdataset(model_name, distribution, Ray, target, cut, scanMode, Rho, POV_fol
     mk_save_png_floder = 'mkdir png'
     result = subprocess.run(mk_save_png_floder, shell=True, capture_output=True, text=True, cwd=main_folder, check=True)
 
-    for k in range(20,55,40):
+    for k in range(20,55,5):
         for i in range(0,18,18):
             for j in range(1):
                 main_degree = 20*i
