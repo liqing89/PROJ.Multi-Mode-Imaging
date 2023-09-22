@@ -28,14 +28,7 @@ def processForSingle(index_single, X, Y, Z, Intens, povname, IncidentAngle,Azimu
     Z1 = Z[index_single]
     Intens1 = Intens[index_single]
     print(max(Intens1), min(Intens1))
-    if povname == 'JC' or povname == 'HM':
-        # 舰船一次散射的处理方式
-        # for i in range(len(Z1)):
-        #     if -0.5 < Z1[i] and Z1[i] < 0.5:
-        #         # 如果这个点是地面的话，散射强度下降为0.00016，如果是目标的话，目标散射强度下降1/4
-        #         Intens1[i] = 0.00016
-        #     else:
-        #         Intens1[i] = Intens1[i]/4
+    if povname == 'JC' or povname == 'HM': # 舰船 / 航母
         for i in range(len(Z1)):
             if Z1[i] < 0.5:
                 # 如果这个点是地面的话，散射强度下降为0.00016，如果是目标的话，目标散射强度下降1/4
@@ -45,9 +38,10 @@ def processForSingle(index_single, X, Y, Z, Intens, povname, IncidentAngle,Azimu
                     Intens1[i] = (1+np.random.rand(1)*0.2)*0.01
                 else:
                     Intens1[i] = Intens1[i]/4 # (1+np.random.rand(1)*0.1)*0.1
-    elif povname == 'TK': 
-        # background = 0.004*(np.sin(IncidentAngle * np.pi /180)/np.sin(40 * np.pi /180))**1.8
+
+    elif povname == 'TK': # 坦克
         background = 0.005 
+        vz = max(Z1);
         for i in range(len(Z1)):
             if Z1[i] < 0.5:
                 # 如果这个点是地面的话，散射强度下降为0.00016，如果是目标的话，目标散射强度下降1/4
@@ -62,96 +56,49 @@ def processForSingle(index_single, X, Y, Z, Intens, povname, IncidentAngle,Azimu
                     Intens1[i] = (1+np.random.rand(1)*0.2)*0.16
                 else:
                     Intens1[i] = Intens1[i]/4
-    elif povname == 'FJ':
-        # background = 0.0015*(np.cos(IncidentAngle * np.pi /180)/np.cos(50 * np.pi /180))**1.8
-        # background = 0.0015*(np.cos((IncidentAngle-20)/(55-20) * np.pi ))**1.8
-        # mean_in1 = np.mean(Intens1);
-        # background = 5e-4
-        # k = - 9.7e-6;
-        # vz = max(Z1)
-        # mean_bg = 0;
-        # count_bg = 0;
 
-        if "B2" in filename: # B2 一次散射
-        
+    elif povname == 'FJ': # 飞机一次散射
+        if "B2" in filename: # B2 隐身飞机 一次散射  
             for i in range(len(Z1)):
-                # 1.不做自适应处理
-                # if Z1[i] < 1: # ground
-                #     pass
-                # else: # plane
-                #     Intens1[i] =  0.5 * Intens1[i]  # 低于背景散射
-
-                # 2.做自适应处理
                 if Z1[i] < 1: # ground
-                    Intens1[i] =  0.3 * Intens1[i] * np.cos(50/180*np.pi)/np.cos(IncidentAngle/180*np.pi)  #自适应背景
+                    Intens1[i] =  0.1 * Intens1[i] * np.cos(50/180*np.pi)/np.cos(IncidentAngle/180*np.pi)  #自适应背景
+                else: # plane
+                    Intens1[i] =  0.05 * Intens1[i] * np.cos(50/180*np.pi)/np.cos(IncidentAngle/180*np.pi)  #自适应背景
+
+
+        elif "F16" in filename or "F18" in filename: # F22和F35 隐身战机 一次散射
+            for i in range(len(Z1)):
+                beta = 0.8 # 幂次
+                if Azimuth == 0: #机头正对来波
+                    if X1[i] > -20 and X1[i] < -5 and Y1[i] > -5 and Y1[i] < 5 and Z1[i]>1: # 锁定机头
+                        cos_incident = np.cos(IncidentAngle) # 20度俯仰角最强 依次减弱
+                        Intens1[i] = Intens1[i] * 0.3 * cos_incident /  ( Intens1[i] ** (beta) ) 
+                    else: # 机头强散射点外一次散射
+                        if Z1[i] < 1: # ground
+                            Intens1[i] =  0.5 * Intens1[i] * np.cos(50/180*np.pi)/np.cos(IncidentAngle/180*np.pi)  #自适应背景
+                        else: # plane
+                            Intens1[i] =  0.3 * Intens1[i] * np.cos(50/180*np.pi)/np.cos(IncidentAngle/180*np.pi)  #自适应背景
+                else: # 非正对来波
+                    if Z1[i] < 1: # ground
+                        Intens1[i] =  0.5 * Intens1[i] * np.cos(50/180*np.pi)/np.cos(IncidentAngle/180*np.pi)  #自适应背景
+                    else: # plane
+                        Intens1[i] =  0.3 * Intens1[i] * np.cos(50/180*np.pi)/np.cos(IncidentAngle/180*np.pi)  #自适应背景
+
+        elif "F22" in filename or "F35" in filename: # 普通飞机一次散射
+            for i in range(len(Z1)):
+                if Z1[i] < 1: # ground
+                    Intens1[i] =  0.2 * Intens1[i] * np.cos(50/180*np.pi)/np.cos(IncidentAngle/180*np.pi)  #自适应背景
                 else: # plane
                     Intens1[i] =  0.1 * Intens1[i] * np.cos(50/180*np.pi)/np.cos(IncidentAngle/180*np.pi)  #自适应背景
 
-                # 3.原代码
-                # if Z1[i] < 1e-3:
-                #     # 如果这个点是地面的话，散射强度下降为0.00016，如果是目标的话，目标散射强度下降1/4
-                #     Intens1[i] = ( Intens1[i] * np.cos(50)/np.cos(IncidentAngle) ) 
-                #     count_bg = count_bg + 1;
-                #     mean_bg = ( mean_bg + Intens1[i] ) / count_bg;
-                #     # Intens1[i] = (1+np.random.rand(1)*0.1) * background
-                # elif Z1[i] > 1.1*vz/2:
-                #      Intens1[i] = ( Intens1[i] * np.cos(45)/np.cos(IncidentAngle) ) 
-                #     # Intens1[i] = 0.7 * k * ( IncidentAngle-50 )
-                #     # Intens1[i] = (1+np.random.rand(1)*0.2)* 0.8 * background
-                # else:
-                #      Intens1[i] = ( Intens1[i] * np.cos(45)/np.cos(IncidentAngle) ) 
-                #     # Intens1[i] = 0.5 * k * ( IncidentAngle-50 )
-                #     # Intens1[i] = (1+np.random.rand(1)*0.1)* 0.9 * background
-
-        elif "F22" in filename: # F22 一次散射
-            for i in range(len(Z1)):
-                beta = 0.8 # 幂次
-                if Azimuth == 0: #机头正对来波
-                    if X1[i] > -20 and X1[i] < -5 and Y1[i] > -5 and Y1[i] < 5 and Z1[i]>1: # 锁定机头
-                        cos_incident = np.cos(IncidentAngle) # 20度俯仰角最强 依次减弱
-                        Intens1[i] = Intens1[i] * 0.1 * cos_incident /  ( Intens1[i] ** (beta) ) 
-                    else: # 机头强散射点外一次散射
-                        if Z1[i] < 1: # ground
-                            Intens1[i] =  0.3 * Intens1[i] * np.cos(50/180*np.pi)/np.cos(IncidentAngle/180*np.pi)  #自适应背景
-                        else: # plane
-                            Intens1[i] =  0.1 * Intens1[i] * np.cos(50/180*np.pi)/np.cos(IncidentAngle/180*np.pi)  #自适应背景
-                else: # 非正对来波
-                    if Z1[i] < 1: # ground
-                        Intens1[i] =  0.3 * Intens1[i] * np.cos(50/180*np.pi)/np.cos(IncidentAngle/180*np.pi)  #自适应背景
-                    else: # plane
-                        Intens1[i] =  0.1 * Intens1[i] * np.cos(50/180*np.pi)/np.cos(IncidentAngle/180*np.pi)  #自适应背景
-        
-        elif "F35" in filename: # F35 一次散射
-            for i in range(len(Z1)):
-                beta = 0.8 # 幂次
-                if Azimuth == 0: #机头正对来波
-                    if X1[i] > -20 and X1[i] < -5 and Y1[i] > -5 and Y1[i] < 5 and Z1[i]>1: # 锁定机头
-                        cos_incident = np.cos(IncidentAngle) # 20度俯仰角最强 依次减弱
-                        Intens1[i] = Intens1[i] * 0.1 * cos_incident /  ( Intens1[i] ** (beta) ) 
-                    else: # 机头强散射点外一次散射
-                        if Z1[i] < 1: # ground
-                            Intens1[i] =  0.3 * Intens1[i] * np.cos(50/180*np.pi)/np.cos(IncidentAngle/180*np.pi)  #自适应背景
-                        else: # plane
-                            Intens1[i] =  0.1 * Intens1[i] * np.cos(50/180*np.pi)/np.cos(IncidentAngle/180*np.pi)  #自适应背景
-                else: # 非正对来波
-                    if Z1[i] < 1: # ground
-                        Intens1[i] =  0.3 * Intens1[i] * np.cos(50/180*np.pi)/np.cos(IncidentAngle/180*np.pi)  #自适应背景
-                    else: # plane
-                        Intens1[i] =  0.1 * Intens1[i] * np.cos(50/180*np.pi)/np.cos(IncidentAngle/180*np.pi)  #自适应背景
 
         else: # 普通飞机一次散射
             for i in range(len(Z1)):
                 if Z1[i] < 1: # ground
-                    Intens1[i] =  Intens1[i] * np.cos(50/180*np.pi)/np.cos(IncidentAngle/180*np.pi)  #自适应背景
+                    Intens1[i] =  1 * Intens1[i] * np.cos(50/180*np.pi)/np.cos(IncidentAngle/180*np.pi)  #自适应背景
                 else: # plane
                     Intens1[i] =  0.8 * Intens1[i] * np.cos(50/180*np.pi)/np.cos(IncidentAngle/180*np.pi)  #自适应背景
-                # if Z1[i] < 0:
-                #     # 如果这个点是地面的话，散射强度下降为0.00016，如果是目标的话，目标散射强度下降1/4
-                #     Intens1[i] = (1+np.random.rand(1)*0.1) * background
-                # elif Z1[i] > 1.1*vz/2:
-                #     Intens1[i] = (1+np.random.rand(1)*0.2)* 0.8 * background
-                # else:
-                #     Intens1[i] = (1+np.random.rand(1)*0.1)* 0.9 * background
+
        
     else:
         pass 
@@ -164,12 +111,6 @@ def processForDouble(index_double, X, Y, Z, Intens, povname,IncidentAngle,Azimut
     Intens2 = Intens[index_double]
     print(max(Intens2), min(Intens2))
     if povname == 'JC' or povname == 'HM': # 舰船二次散射的处理方式
-        
-        # for i in range(len(Intens2)):
-        #     if Intens2[i] < 0.1 and Z2[i] > 1:
-        #         Intens2[i] = 0.007 + np.random.rand(1)*0.0005
-        #     else:
-        #         Intens2[i] = 0.00016
         for i in range(len(Intens2)):
             if Z2[i] < 0.5:
                 Intens2[i] = (1+np.random.rand(1)*0.5)*0.004
@@ -195,34 +136,7 @@ def processForDouble(index_double, X, Y, Z, Intens, povname,IncidentAngle,Azimut
         if "B2" in filename: # 1. B2隐身飞机二次散射的处理方式
             count_max = 0; # 限制高亮点次数
             for i in range(len(Intens2)):
-            # 旋转回原始角度
-            # if Azimuth != 0:
-                # rho = np.sqrt(np.square(Y2[i]) + np.square(X2[i]));
-                # if Y2[i] >=0 and X2[i] >= 0:
-                #     alpha =  np.arctan(Y2[i]/X2[i]);
-                # elif X2[i] < 0:
-                #     alpha = np.pi + np.arctan(Y2[i]/X2[i]);
-                # elif Y2[i] <= 0 and X2[i] >= 0:
-                #     alpha = 2 * np.pi + np.arctan(Y2[i]/X2[i]);
-                # else:
-                #     pass
 
-                 # delta = alpha - Azimuth/180*np.pi;
-
-                # # 还原Y2
-                # if (delta > np.pi and delta < 2*np.pi ):
-                #     Y2_origin = - rho / np.sqrt(1+1/np.square(np.tan(delta)))
-                # else:
-                #     Y2_origin = rho / np.sqrt(1+1/np.square(np.tan(delta)))
-
-                # # 还原X2
-                # X2_origin = Y2_origin / np.tan(delta)
-
-                
-            # else:
-                # Y2_origin = Y2[i];
-                # X2_origin = X2[i];
-                
             # 左手系旋转矩阵
                 R = np.array([[np.cos(-Azimuth*np.pi/180), -np.sin(-Azimuth*np.pi/180)],
                                 [np.sin(-Azimuth*np.pi/180), np.cos(-Azimuth*np.pi/180)]])
@@ -232,27 +146,40 @@ def processForDouble(index_double, X, Y, Z, Intens, povname,IncidentAngle,Azimut
                 # 电磁散射
                 beta = 0.8 # 幂次
                 if X2_origin > 0 and X2_origin < 10 and Y2_origin > -10 and Y2_origin < 10: # 锁定排气管,x-axis指向机头
-                    if count_max < 10:
-                        Intens2[i] = Intens2[i] * 1 /  ( Intens2[i] ** (beta) ) 
+                    if count_max < 2:
+                        Intens2[i] = Intens2[i] * 0.05 /  ( Intens2[i] ** (beta) ) 
                         count_max = count_max + 1
                     else:
-                        
-                        Intens2[i] = Intens2[i] * 0.1 /  ( Intens2[i] ** (beta) )
+                        Intens2[i] = Intens2[i] * 0.003 /  ( Intens2[i] ** (beta) )
                 else:
                     pass
+
+        elif "B1B" in filename:
+            count_max = 0; # 限制高亮点次数
+            beta = 0.8;
+            for i in range(len(Z2)):
+                if Z2[i] < 1: # ground
+                    Intens2[i] = Intens2[i] * 0.06 /  ( Intens2[i] ** (beta) ) # 0.06->0.08
+                else:  # plane
+                    if count_max < 10:      # 限制高亮点次数
+                        Intens2[i] = Intens2[i] * 0.1 /  ( Intens2[i] ** (beta) ) # 0.06->0.08
+                        count_max = count_max + 1
+                    else:
+                        Intens2[i] = Intens2[i] * 0.06 /  ( Intens2[i] ** (beta) ) # 0.06->0.08
+
         
-
-        elif "F22" in filename: # 2. F22隐身飞机二次散射的处理方式
+        elif "F16" in filename or "F18" in filename: # 2. F22/F35隐身飞机二次散射的处理方式
             for i in range(len(Intens2)):
-                # beta = 0.8
-                # Intens2[i] =  Intens2[i] * 0.001 /  ( Intens2[i] ** (beta) )  # 与背景类似
                 Intens2[i] =  Intens2[i] * 0.1
 
-        elif "F35" in filename: # 3. F35隐身飞机二次散射的处理方式
+        elif "F22" in filename or "F35" in filename: # 3. F战机二次散射的处理方式
+            count_max = 0;
             for i in range(len(Intens2)):
-                # beta = 0.8
-                # Intens2[i] =  Intens2[i] * 0.001 /  ( Intens2[i] ** (beta) )  # 与背景类似
-                Intens2[i] =  Intens2[i] * 0.1
+                if count_max<10:
+                    count_max = count_max + 1;
+                    Intens2[i] =  Intens2[i] * 0.5
+                else:
+                    Intens2[i] =  Intens2[i] * 0.1
         
         else: # 4. 普通飞机二次散射的处理方式
             for i in range(len(Intens2)):
@@ -267,7 +194,7 @@ def processForDouble(index_double, X, Y, Z, Intens, povname,IncidentAngle,Azimut
 
     return X2, Y2, Z2, Intens2
 
-def  processForTriple(index_Triple, X, Y, Z, Intens, povname):
+def  processForTriple(index_Triple, X, Y, Z, Intens, povname,IncidentAngle,filename):
     X3 = X[index_Triple]
     Y3 = Y[index_Triple]
     Z3 = Z[index_Triple]
@@ -302,13 +229,11 @@ def  processForTriple(index_Triple, X, Y, Z, Intens, povname):
             else:
                 Intens3[j] = (1+np.random.rand(1)*0.5)*0.008
     elif povname == 'FJ':
-        # 飞机三次散射的处理方式
-        # for j in range(len(Intens3)):
-        #     if Z3[j] < 0.5:
-        #         Intens3[j] = (1+np.random.rand(1)*0.1) * 1e-4
-        #     else:
-        #         Intens3[j] = (1+np.random.rand(1)*0.2) * 8e-2
-        pass
+        if "F22" in filename or "F35" in filename:
+            for j in range(len(Intens3)):
+                Intens3[j] =  1 * Intens3[j] * np.cos(50/180*np.pi)/np.cos(IncidentAngle/180*np.pi) ;
+        else:
+            pass
     else:
         pass
     return X3, Y3, Z3, Intens3
@@ -402,18 +327,18 @@ def txtProcess(params):
 
     X1, Y1, Z1, Intens1 = processForSingle(index_scatter1, X, Y, Z, Intens, target,IncidentAngle,Azimuth,filename)
     X2, Y2, Z2, Intens2 = processForDouble(index_scatter2, X, Y, Z, Intens, target,IncidentAngle,Azimuth,filename)
-    X3, Y3, Z3, Intens3 = processForTriple(index_scatter3, X, Y, Z, Intens, target)
+    X3, Y3, Z3, Intens3 = processForTriple(index_scatter3, X, Y, Z, Intens, target,IncidentAngle,filename)
 
     # 查看3种散射次数分别的建模结果
     # electronics1 = np.dstack((Y1,-X1,Z1,Intens1))
     # electronics1 = np.squeeze(electronics1)
-    # sio.savemat("/home/liq/pro/Debug/mat_1_F35.mat", {"data": electronics1})
+    # sio.savemat("/home/liq/pro/Debug/mat_1_F16.mat", {"data": electronics1})
     # electronics2 = np.dstack((Y2,-X2,Z2,Intens2))
     # electronics2 = np.squeeze(electronics2)
-    # sio.savemat("/home/liq/pro/Debug/mat_2_F35.mat", {"data": electronics2})
+    # sio.savemat("/home/liq/pro/Debug/mat_2_F16.mat", {"data": electronics2})
     # electronics3 = np.dstack((Y3,-X3,Z3,Intens3))
     # electronics3 = np.squeeze(electronics3)
-    # sio.savemat("/home/liq/pro/Debug/mat_3_F35.mat", {"data": electronics3})
+    # sio.savemat("/home/liq/pro/Debug/mat_3_F16.mat", {"data": electronics3})
     
     # 输出电磁建模位置坐标结果
     X = np.concatenate((X1,X2,X3),axis=0)
@@ -449,7 +374,7 @@ if __name__ == "__main__":
     pitchAngel = 50
     Azimuth = 0
     target = "FJ"
-    txtFile = "/home/liq/pro/35Targets/F35/txt/Contributions_50_0_0.txt"
+    txtFile = "/home/liq/pro/35Targets/F16/txt/Contributions_50_0_0.txt"
     # resultMatFile = "/home/lij/pro/Debug/test_B2.mat"
     txtProParams = [Azimuth, pitchAngel, 0, target, 'HH', 147, 95, txtFile]
     elecResult = txtProcess(txtProParams)

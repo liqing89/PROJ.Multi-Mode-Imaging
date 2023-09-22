@@ -107,7 +107,8 @@ class imaging:
             # 截断0.5
             p1, p99 = np.percentile(I, (1, 99.5))
             I = np.clip(I,p1,p99)
-
+            I_2 = I * 255;
+            
             # 1.线性映射 0到255
             # 对图像中低于阈值的强度值进行拉伸，将他们映射到0到255的强度范围内
             # 该图像会保留高亮点
@@ -149,7 +150,7 @@ class imaging:
             # I_2 = (I_2>p1) * (I_2 + ground) + (I_2<p1) * (I_2);
             # I_2[0,0] = 1;
             # I_2[rows-1,cols-1] = 0;
-            I_2 = I * 1023;
+            
 
 
 
@@ -160,7 +161,7 @@ class imaging:
             # I_1 = 20*np.log10(np.abs(I_1)) #dB显示
 
             # 保存图像
-            sio.savemat(save_path,{'image':I_2.astype(np.uint16)})
+            sio.savemat(save_path,{'image':I_2.astype(np.uint8)})
 
 
     def imaging(self):
