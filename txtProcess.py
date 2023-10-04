@@ -66,25 +66,27 @@ def processForSingle(index_single, X, Y, Z, Intens, povname, IncidentAngle,Azimu
                     Intens1[i] =  0.05 * Intens1[i] * np.cos(50/180*np.pi)/np.cos(IncidentAngle/180*np.pi)  #自适应背景
 
 
-        elif "F16" in filename or "F18" in filename: # F22和F35 隐身战机 一次散射
+        elif "F16" in filename or "F18" in filename or "EA18G" in filename: # 小型战斗机一次散射
+            count_max = 0;
             for i in range(len(Z1)):
                 beta = 0.8 # 幂次
                 if Azimuth == 0: #机头正对来波
-                    if X1[i] > -20 and X1[i] < -5 and Y1[i] > -5 and Y1[i] < 5 and Z1[i]>1: # 锁定机头
+                    if X1[i] > -20 and X1[i] < -5 and Y1[i] > -5 and Y1[i] < 5 and Z1[i]>1 and count_max< 15 : # 锁定机头
+                        count_max = count_max + 1;
                         cos_incident = np.cos(IncidentAngle) # 20度俯仰角最强 依次减弱
-                        Intens1[i] = Intens1[i] * 0.3 * cos_incident /  ( Intens1[i] ** (beta) ) 
+                        Intens1[i] = Intens1[i] * 0.1 * (cos_incident)  /  ( Intens1[i] ** (beta) ) 
                     else: # 机头强散射点外一次散射
                         if Z1[i] < 1: # ground
                             Intens1[i] =  0.5 * Intens1[i] * np.cos(50/180*np.pi)/np.cos(IncidentAngle/180*np.pi)  #自适应背景
                         else: # plane
-                            Intens1[i] =  0.3 * Intens1[i] * np.cos(50/180*np.pi)/np.cos(IncidentAngle/180*np.pi)  #自适应背景
-                else: # 非正对来波
+                            Intens1[i] =  0.2 * Intens1[i] * np.cos(50/180*np.pi)/np.cos(IncidentAngle/180*np.pi)  #自适应背景
+                else: # 机头非正对来波
                     if Z1[i] < 1: # ground
                         Intens1[i] =  0.5 * Intens1[i] * np.cos(50/180*np.pi)/np.cos(IncidentAngle/180*np.pi)  #自适应背景
                     else: # plane
-                        Intens1[i] =  0.3 * Intens1[i] * np.cos(50/180*np.pi)/np.cos(IncidentAngle/180*np.pi)  #自适应背景
+                        Intens1[i] =  0.2 * Intens1[i] * np.cos(50/180*np.pi)/np.cos(IncidentAngle/180*np.pi)  #自适应背景
 
-        elif "F22" in filename or "F35" in filename: # 普通飞机一次散射
+        elif "F22" in filename or "F35" in filename: # F22和F35 隐身战机 一次散射
             for i in range(len(Z1)):
                 if Z1[i] < 1: # ground
                     Intens1[i] =  0.2 * Intens1[i] * np.cos(50/180*np.pi)/np.cos(IncidentAngle/180*np.pi)  #自适应背景
@@ -168,11 +170,11 @@ def processForDouble(index_double, X, Y, Z, Intens, povname,IncidentAngle,Azimut
                         Intens2[i] = Intens2[i] * 0.06 /  ( Intens2[i] ** (beta) ) # 0.06->0.08
 
         
-        elif "F16" in filename or "F18" in filename: # 2. F22/F35隐身飞机二次散射的处理方式
+        elif "F16" in filename or "F18" in filename or "EA18G" in filename: # 小型战斗机二次散射的处理方式
             for i in range(len(Intens2)):
-                Intens2[i] =  Intens2[i] * 0.1
+                    Intens2[i] =  Intens2[i] * 0.1
 
-        elif "F22" in filename or "F35" in filename: # 3. F战机二次散射的处理方式
+        elif "F22" in filename or "F35" in filename: # F22/F35隐身飞机二次散射的处理方式
             count_max = 0;
             for i in range(len(Intens2)):
                 if count_max<10:
@@ -229,11 +231,12 @@ def  processForTriple(index_Triple, X, Y, Z, Intens, povname,IncidentAngle,filen
             else:
                 Intens3[j] = (1+np.random.rand(1)*0.5)*0.008
     elif povname == 'FJ':
-        if "F22" in filename or "F35" in filename:
+        if "F22" in filename or "F35" in filename or "EA18G" in filename: #小型战斗机三次散射
             for j in range(len(Intens3)):
                 Intens3[j] =  1 * Intens3[j] * np.cos(50/180*np.pi)/np.cos(IncidentAngle/180*np.pi) ;
         else:
             pass
+    
     else:
         pass
     return X3, Y3, Z3, Intens3
@@ -332,13 +335,13 @@ def txtProcess(params):
     # 查看3种散射次数分别的建模结果
     # electronics1 = np.dstack((Y1,-X1,Z1,Intens1))
     # electronics1 = np.squeeze(electronics1)
-    # sio.savemat("/home/liq/pro/Debug/mat_1_F16.mat", {"data": electronics1})
+    # sio.savemat("/home/liq/pro/Debug/mat_1_F18.mat", {"data": electronics1})
     # electronics2 = np.dstack((Y2,-X2,Z2,Intens2))
     # electronics2 = np.squeeze(electronics2)
-    # sio.savemat("/home/liq/pro/Debug/mat_2_F16.mat", {"data": electronics2})
+    # sio.savemat("/home/liq/pro/Debug/mat_2_F18.mat", {"data": electronics2})
     # electronics3 = np.dstack((Y3,-X3,Z3,Intens3))
     # electronics3 = np.squeeze(electronics3)
-    # sio.savemat("/home/liq/pro/Debug/mat_3_F16.mat", {"data": electronics3})
+    # sio.savemat("/home/liq/pro/Debug/mat_3_F18.mat", {"data": electronics3})
     
     # 输出电磁建模位置坐标结果
     X = np.concatenate((X1,X2,X3),axis=0)
@@ -372,9 +375,9 @@ if __name__ == "__main__":
     import scipy.io as sio
     # 电磁建模
     pitchAngel = 50
-    Azimuth = 0
+    Azimuth = 90
     target = "FJ"
-    txtFile = "/home/liq/pro/35Targets/F16/txt/Contributions_50_0_0.txt"
+    txtFile = "/home/liq/pro/35Targets/F18/txt/Contributions_50_90_0.txt"
     # resultMatFile = "/home/lij/pro/Debug/test_B2.mat"
     txtProParams = [Azimuth, pitchAngel, 0, target, 'HH', 147, 95, txtFile]
     elecResult = txtProcess(txtProParams)

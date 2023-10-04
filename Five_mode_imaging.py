@@ -105,9 +105,19 @@ class imaging:
             mean_val = np.mean(I[0:75,0:75]);
             I = I/I.max() #归一化
             # 截断0.5
-            p1, p99 = np.percentile(I, (1, 99.5))
+            p1, p99 = np.percentile(I, (1, 99))
             I = np.clip(I,p1,p99)
-            I_2 = I * 255;
+            I_2 = I * 255; #uint8量化
+
+            # 动态削弱亮点成像效果
+            # max_list = 0;
+            # len_list = 0;
+            # rows,cols = I_2.shape;
+            # for i in range (int(np.round((rows-1)/3)),int(np.round((rows-1)*2/3))): #取中间目标块
+            #     max_list = np.max(I_2[i,:]) + max_list;
+            #     len_list = len_list + 1;
+            # max_mean = max_list / len_list;
+            # I_2[0,0] =  (max_mean>=230) * 255 + (max_mean<=230) * 1.1 * max_mean; # 保持动态范围
             
             # 1.线性映射 0到255
             # 对图像中低于阈值的强度值进行拉伸，将他们映射到0到255的强度范围内
@@ -151,8 +161,6 @@ class imaging:
             # I_2[0,0] = 1;
             # I_2[rows-1,cols-1] = 0;
             
-
-
 
             # 上限截断
             # pct = 0.1
