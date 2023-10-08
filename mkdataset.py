@@ -48,7 +48,7 @@ def mkdataset(model_name, distribution, Ray, target, cut, scanMode, Rho, POV_fol
     mk_save_pov_floder = 'mkdir pov'
     result = subprocess.run(mk_save_pov_floder, shell=True, capture_output=True, text=True, cwd=main_folder, check=True)
 
-    for incidentAngle in range(20,55,5):
+    for incidentAngle in range(18,55,5):
         # 俯仰角设置
 
         # 根据下视角和方位角计算相机位置
@@ -59,8 +59,8 @@ def mkdataset(model_name, distribution, Ray, target, cut, scanMode, Rho, POV_fol
         distributiony_change = np.sqrt((distributiony+1e6/np.cos(incidentAngle/180 * np.pi))**2-(1e6)**2)-1e6/np.cos(incidentAngle/180 * np.pi)*np.sin(incidentAngle/180 * np.pi)
         
         # 方位角设置
-        for j in range(0,18,18):
-            current_main_degree = j*20
+        for j in range(0,37,1):
+            current_main_degree = j*10
             flag = 0
             # for i in range(current_main_degree*2-5,current_main_degree*2+6):
             for i in range(1):
@@ -101,7 +101,7 @@ def mkdataset(model_name, distribution, Ray, target, cut, scanMode, Rho, POV_fol
                     f.writelines(content)
                 f.close()
                 flag += 1
-            print('已完成俯仰角 {} 度, 方位角 {} 度的pov文件初始化。'.format(incidentAngle, 20*j))
+            print('已完成俯仰角 {} 度, 方位角 {} 度的pov文件初始化。'.format(incidentAngle, 10*j))
 
     # 步骤2：对pov文件进行电磁建模
     if os.path.exists(save_txt_folder_name):
@@ -109,10 +109,10 @@ def mkdataset(model_name, distribution, Ray, target, cut, scanMode, Rho, POV_fol
     mk_save_txt_floder = 'mkdir txt'
     result = subprocess.run(mk_save_txt_floder, shell=True, capture_output=True, text=True, cwd=main_folder, check=True)
 
-    for k in range(20,55,5):
+    for k in range(18,55,5):
         RayH_change = np.sqrt((RayH+1e6/np.cos(k/180 * np.pi))**2-(1e6)**2)-1e6/np.cos(k/180 * np.pi)*np.sin(k/180 * np.pi)
-        for i in range(0,18,18):
-            main_degree = 20*i
+        for i in range(0,37,1):
+            main_degree = 10*i
             current_name_prefix = save_pov_folder_name+str(k)+'_'+str(main_degree)
             for j in range(1):
                 current_file_name = current_name_prefix + '_' + str(j) + '.pov'
@@ -122,7 +122,7 @@ def mkdataset(model_name, distribution, Ray, target, cut, scanMode, Rho, POV_fol
 
                 reviseFilenameCommand = 'mv Contributions.txt Contributions_'+str(k)+'_'+str(main_degree) + '_' + str(j) + '.txt'
                 result = subprocess.run(reviseFilenameCommand, shell=True, capture_output=True, text=True, cwd=save_txt_folder_name, check=True)
-            print('已完成俯仰角 {} 度, 方位角 {} 度的电磁建模。'.format(k, 20*i))
+            print('已完成俯仰角 {} 度, 方位角 {} 度的电磁建模。'.format(k, 10*i))
 
     # 步骤3：对建模结果进行裁剪处理
     if os.path.exists(save_mat_folder_name):
@@ -130,19 +130,19 @@ def mkdataset(model_name, distribution, Ray, target, cut, scanMode, Rho, POV_fol
     mk_save_mat_floder = 'mkdir mat'
     result = subprocess.run(mk_save_mat_floder, shell=True, capture_output=True, text=True, cwd=main_folder, check=True)
 
-    for k in range(20,55,5):
+    for k in range(18,55,5):
         x_cut_change = np.sqrt((x_cut+1e6/np.cos(k/180 * np.pi))**2-(1e6)**2)-1e6/np.cos(k/180 * np.pi)*np.sin(k/180 * np.pi)
-        for i in range(0,18,18):
-            main_degree = 20*i
+        for i in range(0,37,1):
+            main_degree = 10*i
             current_name_prefix = save_txt_folder_name + 'Contributions_' + str(k) + '_' + str(main_degree)
             for j in range(1):
                 current_file_name = current_name_prefix + '_' + str(j) + '.txt'
-                txtProParams = [k, 0, target, 'HH', x_cut_change, y_cut, current_file_name]
+                txtProParams = [main_degree,k, 0, target, 'HH', x_cut_change, y_cut, current_file_name]
                 elecResult = txtProcess(txtProParams)
                 savedic = {"data": elecResult, "offNadiAng": k}
                 resultMatFile = "{}mat_{}_{}_{}.mat".format(save_mat_folder_name, k, main_degree, j)
                 sio.savemat(resultMatFile, savedic)
-            print('已完成俯仰角 {} 度, 方位角 {} 度的电磁建模裁剪工作。'.format(k, 20*i))
+            print('已完成俯仰角 {} 度, 方位角 {} 度的电磁建模裁剪工作。'.format(k, 10*i))
     
     # 步骤4：进行回波仿真
     if os.path.exists(save_echo_folder_name):
@@ -150,10 +150,10 @@ def mkdataset(model_name, distribution, Ray, target, cut, scanMode, Rho, POV_fol
     mk_save_echo_floder = 'mkdir echo'
     result = subprocess.run(mk_save_echo_floder, shell=True, capture_output=True, text=True, cwd=main_folder, check=True)
 
-    for k in range(20,55,5):
-        for i in range(0,18,18):
+    for k in range(18,55,5):
+        for i in range(0,37,1):
             for j in range(1):
-                main_degree = 20*i
+                main_degree = 10*i
                 modelingResultPath = save_mat_folder_name + 'mat_' + str(k) + '_' + str(main_degree) + '_' + str(j) + '.mat'
                 echoResultPath = save_echo_folder_name + 'echo_' + str(k) + '_' + str(main_degree) + '_' + str(j) + '.mat'
                 settingsPath = main_folder + '/settings.mat'        # 中间参数文件结果
@@ -241,16 +241,16 @@ def mkdataset(model_name, distribution, Ray, target, cut, scanMode, Rho, POV_fol
     mk_save_img_floder = 'mkdir img'
     result = subprocess.run(mk_save_img_floder, shell=True, capture_output=True, text=True, cwd=main_folder, check=True)
 
-    for k in range(20,55,5):
-        for i in range(0,18,18):
+    for k in range(18,56,10):
+        for i in range(0,37,1):
             for j in range(1):
-                main_degree = 20*i
+                main_degree = 10*i
                 data_path = save_echo_folder_name + 'echo_' + str(k) + '_' + str(main_degree) + '_' + str(j) + '.mat'
                 save_path = save_img_folder_name + 'img_' + str(k) + '_' + str(main_degree) + '_' + str(j) + '.mat'
                 imaging_current = imaging(data_path, beta)
                 imaging_current.imaging()
-                imaging_current.show_image(2, save_path)
-            print('已完成俯仰角 {} 度, 方位角 {} 度的回波成像工作。'.format(k, 20*i))
+                imaging_current.show_image(2, save_path,model_name)
+            print('已完成俯仰角 {} 度, 方位角 {} 度的回波成像工作。'.format(k, 10*i))
 
     # 步骤6：将成像结果存为png文件
     if os.path.exists(save_png_folder_name):
@@ -258,16 +258,16 @@ def mkdataset(model_name, distribution, Ray, target, cut, scanMode, Rho, POV_fol
     mk_save_png_floder = 'mkdir png'
     result = subprocess.run(mk_save_png_floder, shell=True, capture_output=True, text=True, cwd=main_folder, check=True)
 
-    for k in range(20,55,5):
-        for i in range(0,18,18):
+    for k in range(18,55,5):
+        for i in range(0,37,1):
             for j in range(1):
-                main_degree = 20*i
+                main_degree = 10*i
                 data_path = save_img_folder_name + 'img_' + str(k) + '_' + str(main_degree) + '_' + str(j) + '.mat'
                 save_path = save_png_folder_name + 'png_' + str(k) + '_' + str(main_degree) + '_' + str(j) + '.png'
                 data = sio.loadmat(data_path)['image']
-                # 裁剪
-                l = int(data.shape[1]/2 - data.shape[0]/2*0.8); r = int(data.shape[1]/2 + data.shape[0]/2*0.8)
-                u = int(data.shape[0]*0.1+1); d = int(data.shape[0]*0.9)
-                image = np.array(data[u:d,l:r], dtype=np.uint8)
+                # # 裁剪
+                # l = int(data.shape[1]/2 - data.shape[0]/2*0.8); r = int(data.shape[1]/2 + data.shape[0]/2*0.8)
+                # u = int(data.shape[0]*0.1+1); d = int(data.shape[0]*0.9)
+                # image = np.array(data[u:d,l:r], dtype=np.uint8)
                 mpimg.imsave(save_path, image, cmap=plt.cm.gray)
-            print('已完成俯仰角 {} 度, 方位角 {} 度的成像结果储存。'.format(k, 20*i))
+            print('已完成俯仰角 {} 度, 方位角 {} 度的成像结果储存。'.format(k, 10*i))

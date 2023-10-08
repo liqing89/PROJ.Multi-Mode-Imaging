@@ -27,7 +27,7 @@ def processForSingle(index_single, X, Y, Z, Intens, povname, IncidentAngle,Azimu
     Y1 = Y[index_single]
     Z1 = Z[index_single]
     Intens1 = Intens[index_single]
-    print(max(Intens1), min(Intens1))
+    # print(max(Intens1), min(Intens1))
     if povname == 'JC' or povname == 'HM': # 舰船 / 航母
         for i in range(len(Z1)):
             if Z1[i] < 0.5:
@@ -111,7 +111,7 @@ def processForDouble(index_double, X, Y, Z, Intens, povname,IncidentAngle,Azimut
     Y2 = Y[index_double]
     Z2 = Z[index_double]
     Intens2 = Intens[index_double]
-    print(max(Intens2), min(Intens2))
+    # print(max(Intens2), min(Intens2))
     if povname == 'JC' or povname == 'HM': # 舰船二次散射的处理方式
         for i in range(len(Intens2)):
             if Z2[i] < 0.5:
@@ -152,7 +152,7 @@ def processForDouble(index_double, X, Y, Z, Intens, povname,IncidentAngle,Azimut
                         Intens2[i] = Intens2[i] * 0.05 /  ( Intens2[i] ** (beta) ) 
                         count_max = count_max + 1
                     else:
-                        Intens2[i] = Intens2[i] * 0.003 /  ( Intens2[i] ** (beta) )
+                        Intens2[i] = Intens2[i] * 0.015 /  ( Intens2[i] ** (beta) )
                 else:
                     pass
 
@@ -163,7 +163,7 @@ def processForDouble(index_double, X, Y, Z, Intens, povname,IncidentAngle,Azimut
                 if Z2[i] < 1: # ground
                     Intens2[i] = Intens2[i] * 0.06 /  ( Intens2[i] ** (beta) ) # 0.06->0.08
                 else:  # plane
-                    if count_max < 10:      # 限制高亮点次数
+                    if count_max < 10:   # 限制高亮点次数
                         Intens2[i] = Intens2[i] * 0.1 /  ( Intens2[i] ** (beta) ) # 0.06->0.08
                         count_max = count_max + 1
                     else:
@@ -335,13 +335,13 @@ def txtProcess(params):
     # 查看3种散射次数分别的建模结果
     # electronics1 = np.dstack((Y1,-X1,Z1,Intens1))
     # electronics1 = np.squeeze(electronics1)
-    # sio.savemat("/home/liq/pro/Debug/mat_1_F18.mat", {"data": electronics1})
+    # sio.savemat("/home/liq/pro/Debug/mat_1_B2.mat", {"data": electronics1})
     # electronics2 = np.dstack((Y2,-X2,Z2,Intens2))
     # electronics2 = np.squeeze(electronics2)
-    # sio.savemat("/home/liq/pro/Debug/mat_2_F18.mat", {"data": electronics2})
+    # sio.savemat("/home/liq/pro/Debug/mat_2_B2.mat", {"data": electronics2})
     # electronics3 = np.dstack((Y3,-X3,Z3,Intens3))
     # electronics3 = np.squeeze(electronics3)
-    # sio.savemat("/home/liq/pro/Debug/mat_3_F18.mat", {"data": electronics3})
+    # sio.savemat("/home/liq/pro/Debug/mat_3_B2.mat", {"data": electronics3})
     
     # 输出电磁建模位置坐标结果
     X = np.concatenate((X1,X2,X3),axis=0)
@@ -374,10 +374,10 @@ def txtProcess(params):
 if __name__ == "__main__":
     import scipy.io as sio
     # 电磁建模
-    pitchAngel = 50
-    Azimuth = 90
+    pitchAngel = 40
+    Azimuth = 0
     target = "FJ"
-    txtFile = "/home/liq/pro/35Targets/F18/txt/Contributions_50_90_0.txt"
+    txtFile = "/home/liq/pro/35Targets/B2/txt/Contributions_40_0_0.txt"
     # resultMatFile = "/home/lij/pro/Debug/test_B2.mat"
     txtProParams = [Azimuth, pitchAngel, 0, target, 'HH', 147, 95, txtFile]
     elecResult = txtProcess(txtProParams)

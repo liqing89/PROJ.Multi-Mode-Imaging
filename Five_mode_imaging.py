@@ -8,7 +8,7 @@ import scipy.io as sio
 import matplotlib.pyplot as plt
 
 class imaging:
-    def __init__(self,path,beta):
+    def __init__(self,path,beta_range,beta_azimuth):
         self.data,para = read_data.load_data(path)
         # 光速
         self.c = para['c']
@@ -43,14 +43,15 @@ class imaging:
         # 方位向分辨率
         self.dazm = self.Vr/self.PRF
         # 凯撒窗系数
-        self.beta = beta
+        self.beta_range = beta_range
+        self.beta_azimuth = beta_azimuth       
     def Rangewindow(self):
         '''
         生成距离维的窗
         '''
         Na,Nr = self.data.shape
         # window = np.hamming(np.ceil(self.Br/self.fs*Nr))
-        window = np.kaiser(np.ceil(self.Br/self.fs*Nr), self.beta)
+        window = np.kaiser(np.ceil(self.Br/self.fs*Nr), self.beta_range)
         # 补0
         Length_w = len(window)
         window = np.concatenate((np.zeros(int(np.ceil((Nr-Length_w)/2))),window))
@@ -63,7 +64,7 @@ class imaging:
         '''
         Na,Nr = self.data.shape
         # window = np.hamming(np.ceil(2*self.Vr*self.lamda/self.La/self.lamda/self.PRF*Na))
-        window = np.kaiser(np.ceil(2*self.Vr*self.lamda/self.La/self.lamda/self.PRF*Na), self.beta)
+        window = np.kaiser(np.ceil(2*self.Vr*self.lamda/self.La/self.lamda/self.PRF*Na), self.beta_azimuth)
         # 补0
         Length_w = len(window)
         window = np.concatenate((np.zeros(int(np.ceil((Na-Length_w)/2))),window))
@@ -71,7 +72,7 @@ class imaging:
         window = np.fft.fftshift(window).reshape(-1,1)
         return window
     
-    def show_image(self,mode,save_path):
+    def show_image(self,mode,save_path,filename):
         '''
         截取成像区域并显示
         '''
@@ -100,15 +101,61 @@ class imaging:
 
         elif mode == 2:
             # 用线性显示
-            # date:2023-09-06
+
+            # 提取图像信息
             I = np.abs(I) # 幅度
-            mean_val = np.mean(I[0:75,0:75]);
-            I = I/I.max() #归一化
-            # 截断0.5
+            mean_val = np.mean(I[0:75,0:75]); # 左上背景均值 
+            rows,cols = I.shape; # 图像大小
+            
+            # 归一化
+            I = I/I.max() 
+
+            # 截断
             p1, p99 = np.percentile(I, (1, 99))
             I = np.clip(I,p1,p99)
-            I_2 = I * 255; #uint8量化
+            
 
+            # 显示
+            # uint8量化
+            I_2 = I * 255; 
+
+            # 为了更好展现飞机的成像效果
+            if "F16" in filename or "F18" in filename or "EA18G" in filename : 
+                max_value = np.max(I_2)
+                max_index = np.unravel_index(np.argmax(I_2), I_2.shape)
+                I_2[max_index] = max_value * 2;
+                # I_2[0,0] = 0.2* 255
+                # I_2[1,1] = 0
+            
+            if "F22" in filename or "F35" in filename: 
+                max_value = np.max(I_2)
+                max_index = np.unravel_index(np.argmax(I_2), I_2.shape)
+                I_2[max_index] = max_value * 1.5;
+             
+            if "B2" in filename:
+                # max_value = np.max(I_2)
+                # max_index = np.unravel_index(np.argmax(I_2), I_2.shape)
+                # I_2[max_index] = max_value * 1.1;
+                # min_value = np.min(I_2)
+                # min_index = np.unravel_index(np.argmin(I_2), I_2.shape)
+                # I_2[min_index] = 0;
+                pass
+
+            # 小型战斗机需要压缩成像灰度范围
+            # date:2023-10-04
+            # I_2 = I
+            # if "F16" in filename or "F18" in filename or "EA18G" in filename: 
+            #     for i in range (0,rows-2):
+            #         for j in range (0,cols-2):
+            #             sibling =  (I[i-2][j] + I[i+2][j] + I[i][j-2] + I[i][j+2]) / 4
+            #             if I[i][j] > 0.95 and I[i-2][j] > 0.95 and I[i+2][j] > 0.95 and I[i][j-2] > 0.95 and I[i][j+2] > 0.95: # 目标高亮点
+            #                 I_2[i][j] = I[i][j] * 255
+            #             else: # 背景中散落的高亮点/其他点
+            #                 I_2[i][j] = I[i][j] * 200
+            # else: # 其他目标 线性量化
+            #     I_2 = I * 255; 
+
+            
             # 动态削弱亮点成像效果
             # max_list = 0;
             # len_list = 0;
