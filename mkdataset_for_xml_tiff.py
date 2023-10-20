@@ -8,7 +8,7 @@ from read_data import *
 from Five_mode_imaging import *
 import matplotlib.image as mpimg
 
-def mkdataset(model_name, model_info_folder, current_save_folder, distributionx, distributiony, RayH, RayW,
+def mkdataset(model_name, model_info_folder,model_xml_file, current_save_folder, current_mid_folder,distributionx, distributiony, RayH, RayW,
               target_type, x_cut, y_cut, scanMode, Rho, beta_range, beta_azimuth, wave_band, polarization, squiAng):
 
     # 参数设置
@@ -21,13 +21,17 @@ def mkdataset(model_name, model_info_folder, current_save_folder, distributionx,
     rngRho = Rho
     azmRho = Rho
 
+    scanModeMap = {"1": "条带", "2": "聚束", "3": "滑聚", "4": "扫描", "5": "TOPS", "6": "斜视"}
+
     # 初始化文件目录
     if os.path.exists(current_save_folder):
         shutil.rmtree(current_save_folder)
     os.makedirs(current_save_folder)
 
     # 生成缓存文件夹
-    save_mid_result_folder = current_save_folder + 'mid_result'
+    if os.path.exists(current_mid_folder):
+        shutil.rmtree(current_mid_folder)
+    save_mid_result_folder = current_mid_folder
     os.makedirs(save_mid_result_folder)
 
     # 暂存变量，不用进行更改，方便程序运行
@@ -46,6 +50,7 @@ def mkdataset(model_name, model_info_folder, current_save_folder, distributionx,
 
     print('开始生产目标：' + model_name + '，目标类型：' + target_type + '，极化：' + polarization + '，波段：' + wave_band + '，分辨率：' + str(Rho))
     povfilename = model_info_folder + model_name +'.pov'
+    xmlfilename = model_info_folder + model_name +'.xml'
 
     # 取出几何模型
     with open(povfilename,'r',encoding='utf-8') as f1:
@@ -68,7 +73,8 @@ def mkdataset(model_name, model_info_folder, current_save_folder, distributionx,
     # 其他参数
     squiAng = 0        # 斜视情况所需参数
     threadNum = 48     # CPU并行线程数
-    sightRange = 3e3   # 卫星与场景的最短距离，自定义和实际轨道均有效，此时仿真轨道非实际轨道
+    sightRange = 1e4   # 卫星与场景的最短距离，自定义和实际轨道均有效，此时仿真轨道非实际轨道
+                       # 10km
     targetV = np.array([0, 0, 0], dtype="double").reshape(-1,1)       # 将速度矢量转化为np列向量
 
     # 误差参数
@@ -140,7 +146,7 @@ def mkdataset(model_name, model_info_folder, current_save_folder, distributionx,
     settingsPath = save_mid_result_folder + '/settings.mat'        
 
     # 俯仰角设置
-    for incidentAngle in range(18,55,5):
+    for incidentAngle in range(18,56,500):
         # 根据下视角和方位角计算相机位置
         # 相机初始位置,即方位角为0时
         Z = 700*np.cos(incidentAngle/180 * np.pi)
@@ -150,13 +156,14 @@ def mkdataset(model_name, model_info_folder, current_save_folder, distributionx,
         RayH_change = np.sqrt((RayH+1e6/np.cos(incidentAngle/180 * np.pi))**2-(1e6)**2)-1e6/np.cos(incidentAngle/180 * np.pi)*np.sin(incidentAngle/180 * np.pi)
         x_cut_change = np.sqrt((x_cut+1e6/np.cos(incidentAngle/180 * np.pi))**2-(1e6)**2)-1e6/np.cos(incidentAngle/180 * np.pi)*np.sin(incidentAngle/180 * np.pi)
         
-        for j in range(0,36,1):
+        for j in range(0,36,100):
             # 方位角设置
             current_degree = j*10
             # 设置存储文件
             current_name = str(incidentAngle)+'_'+str(current_degree)
-
-            # 步骤1：初始化pov文件
+            current_save_name = current_save_folder + current_name
+            os.makedirs(current_save_name)
+            # 步骤1：初始化pov & xml文件
             # 当前角度
             Z0 = Z
             Y0 = Y*np.cos((current_degree+90)/180 * np.pi)
@@ -186,6 +193,20 @@ def mkdataset(model_name, model_info_folder, current_save_folder, distributionx,
                 f.writelines(content)
             f.close()
 
+            # 取出xml模板
+            model_xml_dict = xmlFileToDict(model_xml_file)
+            current_xml_dict = xmlFileToDict(xmlfilename)
+            # 更新head以及target_info
+            model_xml_dict["ndm"].update({"head": current_xml_dict["ndm"]["head"]})
+            model_xml_dict["ndm"]["body"].update({"target_info": current_xml_dict["ndm"]["body"]["target_info"]})
+            # 更新image_info
+            model_xml_dict["ndm"]["body"]["image_info"]["relation"].update({"incident_angle": incidentAngle})
+            model_xml_dict["ndm"]["body"]["image_info"]["sar_payload"].update({"wave_band": wave_band})
+            model_xml_dict["ndm"]["body"]["image_info"]["sar_payload"].update({"polarization": polarization})
+            # 存储xml文件
+            savexmlname = current_save_name + '/' + current_name + '.xml'
+            dictToXmlFile(savexmlname, model_xml_dict)
+
             # 步骤2：对pov文件进行电磁建模
             runCommand = 'povray '+ savefilename +' -D +W'+str(int(1.2*RayW))+' +H'+str(int(1.2*RayH_change))
             result = subprocess.run(runCommand, shell=True, capture_output=True, text=True, cwd=save_txt_folder_name, check=True)
@@ -212,6 +233,18 @@ def mkdataset(model_name, model_info_folder, current_save_folder, distributionx,
             # 保存参数
             sio.savemat(settingsPath, initParams)
 
+            # 初始化xml文件
+            current_xml_dict = xmlFileToDict(savexmlname)
+            # 更新image_info
+            current_xml_dict["ndm"]["body"]["target_info"].update({"target_azimuth": current_degree-(orbital["incAng"]-90)})
+            current_xml_dict["ndm"]["body"]["image_info"]["relation"].update({"incident_direction": current_degree})
+            current_xml_dict["ndm"]["body"]["image_info"]["sar_payload"].update({"imaging_mode": scanModeMap[str(scanMode)]})
+            current_xml_dict["ndm"]["body"]["image_info"]["sar_payload"].update({"distance_resolution": rngRho})
+            current_xml_dict["ndm"]["body"]["image_info"]["sar_payload"].update({"azimuth_resolution": azmRho})
+            # 更新存储xml文件
+            os.remove(savexmlname)
+            dictToXmlFile(savexmlname, current_xml_dict)
+
             # 运行回波程序
             try:
                 print("开始回波仿真...")
@@ -225,21 +258,74 @@ def mkdataset(model_name, model_info_folder, current_save_folder, distributionx,
             else:
                 print("回波仿真完成！")
     
-            # 步骤5：进行成像处理并存为.png文件
+            # 步骤5：进行成像处理并存为.png、.tif文件
             save_img_path = save_img_folder_name + current_name + '.mat'
-            save_png_path = current_save_folder+'/' + current_name + '.png'
+            save_png_path = current_save_name + '/' + current_name + '.png'
+            save_tif_path = current_save_name + '/' + current_name + '.tif'
+            save_range_path = current_save_name + '/' + 'yiweijulixiang.png'
             # 成像
-            imaging_current = imaging(echoResultPath, beta_range,beta_azimuth)
+            imaging_current = imaging(echoResultPath, beta_range, beta_azimuth)
             imaging_current.imaging()
-            imaging_current.show_image(2, save_img_path, model_name)
-            # sio.savemat(save_img_path, {"image": image, "resolution": imaging_current.dazm})
-            # 裁剪
-            # l = int(image.shape[1]/2 - image.shape[0]/2*0.8); r = int(image.shape[1]/2 + image.shape[0]/2*0.8)
-            # u = int(image.shape[0]*0.1+1); d = int(image.shape[0]*0.9)
-            # image = np.array(image[u:d,l:r], dtype=np.uint8)
-            image = sio.loadmat(save_img_path)["image"]
-            mpimg.imsave(save_png_path, image, cmap=plt.cm.gray)
+            imaging_current.dataExpose() # 保存成像结果为成员
+            image = imaging_current.img # 处理后的图像数据
+            sio.savemat(save_img_path, {"image": image, "resolution": imaging_current.dazm})
+            # 一维距离向保存  
+            plt.figure()
+            plt.plot(imaging_current.range_image)
+            plt.savefig(save_range_path, pad_inches=0)
+            plt.close()
+            # 初始化xml文件
+            current_xml_dict = xmlFileToDict(savexmlname)
+            # 更新image_info
+            current_xml_dict["ndm"]["body"]["image_info"].update({"sensor_type": 'SAR'})
+            current_xml_dict["ndm"]["body"]["image_info"].update({"image_time": CurrTime().localeTime})
+            current_xml_dict["ndm"]["body"]["image_info"].update({"resolution": imaging_current.dazm})
+            current_xml_dict["ndm"]["body"]["image_info"]["relation"].update({"center_angle": incidentAngle})
+            # 更新inversion_info
+            current_xml_dict["ndm"]["body"]["inversion_info"]["electromagnetic_scattering_characteristic"].update({"HRRP": "yiweijulixiang.png"})
+            # 更新存储xml文件
+            os.remove(savexmlname)
+            dictToXmlFile(savexmlname, current_xml_dict)
 
-    # 步骤6：清除生产中产生的中间结果
-    if os.path.exists(save_mid_result_folder):
-        shutil.rmtree(save_mid_result_folder)
+            # 裁剪
+            l = int(image.shape[1]/2 - image.shape[0]/2*0.8); r = int(image.shape[1]/2 + image.shape[0]/2*0.8)
+            u = int(image.shape[0]*0.1+1); d = int(image.shape[0]*0.9)
+            image = np.array(image[u:d,l:r], dtype=np.uint8)
+            mpimg.imsave(save_png_path, image, cmap=plt.cm.gray)
+            tiff.imwrite(save_tif_path, image)
+
+            # 步骤6：进行目标特征提取
+            save_scatter_Path = current_save_name + '/' + 'sanshezhongxin.png'
+            try:
+                # 参数设置
+                dazm = sio.loadmat(save_img_path)['resolution']
+                imgMeta =  {"azimuth_resolution": dazm, "distance_resolution": dazm}
+                # 调用特征提取算法
+                worker = Extractor()
+                worker.performExtract(save_png_path, imgMeta, target_type)
+                # 散射中心图像存储
+                plt.imshow(worker.scatterImg)
+                plt.axis('off')
+                plt.savefig(save_scatter_Path, bbox_inches='tight', pad_inches=0)
+                plt.close()
+                # 封装提取的特征
+                meta = {
+                    "retrieval_length": worker.tgInfo['length'],
+                    "retrieval_width": worker.tgInfo['width'],
+                    "velocity": worker.tgInfo['velocity']+(np.random.rand(1))[0]-0.5,
+                    "direction": worker.tgInfo['rotateAng'],
+                    "area": float(worker.tgInfo['length']) * float(worker.tgInfo['width']),
+                    "aspect_angle": worker.tgInfo['rotateAng'],
+                }
+                # 初始化xml文件
+                current_xml_dict = xmlFileToDict(savexmlname)
+                # 更新inversion_info
+                current_xml_dict["ndm"]["body"]["inversion_info"].update(meta)
+                current_xml_dict["ndm"]["body"]["inversion_info"].update({"incident_angle": incidentAngle})
+                current_xml_dict["ndm"]["body"]["inversion_info"]["electromagnetic_scattering_characteristic"].update({"AttributeScatter": "sanshezhongxin.png"})
+                # 更新存储xml文件
+                os.remove(savexmlname)
+                dictToXmlFile(savexmlname, current_xml_dict)
+            except Exception as e:
+                print(e)
+                continue

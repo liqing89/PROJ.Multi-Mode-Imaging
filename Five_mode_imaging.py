@@ -88,6 +88,8 @@ class imaging:
         u = int(I.shape[0]*0.1+1); d = int(I.shape[0]*0.9)
         I = np.array(I[u:d,l:r])
 
+        
+
         if mode == 1:
             # 条带模式下背景自适应量化
             I = np.abs(I) # 取图像幅值
