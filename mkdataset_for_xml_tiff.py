@@ -4,7 +4,7 @@ import os
 import shutil
 from txtProcess import * # 电磁建模结果处理文件
 import scipy.io as sio # 后面三个为成像库
-from read_data import * 
+from new_production_1021.read_data import * 
 from Five_mode_imaging import *
 import matplotlib.image as mpimg
 

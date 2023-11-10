@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<ndm>
+    <head>
+        <target_type>JC</target_type>		<!--xml文件描述的目标类型(飞机,舰船) [必填]-->
+        <imaging_type>sar</imaging_type>		<!--xml文件描述的成像方式(可见光,高光谱,sar) [必填]-->
+        <collection>采集一部</collection>		<!--采集单位-->
+        <product_level>L2</product_level>		<!--卫星数据产品等级-->
+    </head>
+    <body>
+        <target_info>
+            <target_id></target_id>			<!--目标编号[必填]-->
+            <target_name></target_name>
+            <nation></nation>			<!--目标国别-->
+            <level_1_class>舰船</level_1_class> <!--[必填]-->
+            <level_2_class>军舰</level_2_class> <!--[必填]-->
+            <level_3_class></level_3_class> <!--[必填]-->
+            <level_4_class></level_4_class> <!--[必填]-->
+            <target_model></target_model>			<!--目标型号  [必填]-->
+            <military_base></military_base><!--所属军事基地  [必填]-->
+            <base_coordinate></base_coordinate>			<!--所属军事基地坐标  [必填]-->
+			<motion>停靠</motion>		<!--目标活动状态(停靠，飞行)[必填]-->
+            <background_material>海面</background_material>		<!--  目标背景:草地、水泥、沥青等-->
+			<mask_mode>无遮挡</mask_mode> <!--遮蔽状态:弱遮挡、半遮挡、全遮挡-->
+			<aspect_angle></aspect_angle> <!--目标方位角-->
+			<indenti_grade></indenti_grade> <!--目标辨识等级(发现、识别、确认、描述)-->
+			<pic_path></pic_path> <!--目标图像资料-->
+			<service_state>在役</service_state> <!--目标在役状态-->
+			<model_path></model_path> 		<!--目标三维模型-->
+            <jc_length></jc_length><!--[必填]-->
+            <jc_width></jc_width><!--[必填]-->
+            <jc_height></jc_height><!--[必填]-->
+            <draft></draft><!--[必填]-->
+            <loaded_displacement></loaded_displacement><!--[必填]-->
+            <standard_displacement></standard_displacement><!--[必填]-->
+            <hull_num></hull_num><!--船体数量-->
+            <missile></missile><!--导弹-->
+            <artillery></artillery><!--火炮-->
+            <underwater_weapon></underwater_weapon><!--水中兵器-->
+            <shipboard_radar></shipboard_radar><!--舰载雷达-->
+        </target_info>
+        <image_info>
+            <scene_id></scene_id>
+            <chip_id></chip_id><!--[必填]-->
+            <chip_name></chip_name>
+            <chip_path></chip_path>
+			<military_base_chip_path></military_base_chip_path><!--基地切片-->
+            <satellite></satellite>			<!--卫星型号-->
+            <orbit_type></orbit_type>
+            <orbit_direction></orbit_direction>
+            <sensor_type>sar</sensor_type>
+            <imaging_time></imaging_time><!--[必填]-->
+            <resolution></resolution><!--[必填]-->
+            <position>
+				<!--卫星位置-->
+				<sat_longitude></sat_longitude>
+				<!--经度(度)-->
+				<sat_latitude></sat_latitude>
+				<!--纬度(度)-->
+				<sat_height></sat_height>
+				<!--高度(度)-->
+			</position>
+			<velocity>
+				<!--卫星速度-->
+				<sat_north></sat_north>
+				<!--正北方向速度(km/h)-->
+				<sat_east></sat_east>
+				<!--正东方向速度(km/h)-->
+				<sat_vertical></sat_vertical>
+				<!--垂直方向速度(m/min)-->
+			</velocity>
+			<attitude>
+				<!--卫星姿态-->
+				<sat_viewing_angle></sat_viewing_angle>
+				<!--卫星方位角(度)-->
+				<sat_pitch_angle></sat_pitch_angle>
+				<!--卫星俯仰角(度)-->
+				<sat_yaw_angle></sat_yaw_angle>
+				<!--卫星偏转角(度)-->
+			</attitude>
+            <relation>
+				<!--卫星目标入射关系-->
+				<center_angle></center_angle>
+				<!--中心视角-->
+				<incident_angle></incident_angle>
+				<!--入射角[必填]-->
+				<incident_direction></incident_direction>
+				<!--入射方向[必填]-->
+            </relation>
+            <sar_payload>
+                <!--卫星SAR成像载荷信息(在成像方式为SAR成像时，此字段有效)-->
+				<imaging_method>cs</imaging_method>
+				<!--图像生成方法-->
+				<imaging_mode>STRIPMAP</imaging_mode>
+				<!--成像模式（条带/聚束/扫描/滑动聚束）-->
+				<range_resolution></range_resolution>
+				<!--雷达距离向分辨率(米)-->
+				<azimuth_resolution></azimuth_resolution>
+				<!--雷达方位向分辨率(米)-->
+				<wave_band></wave_band>
+				<!--成像波段(C,L,X,P等)-->
+				<polar_mode></polar_mode>
+				<!--雷达极化方式(HH,HV,VH,VV)-->
+            </sar_payload>
+			<opt_payload>
+				<!--卫星光学成像载荷信息(在成像方式为可见光,高光谱等光学成像时，此字段有效)-->
+				<imaging_mode></imaging_mode>
+				<!--成像模式（凝视/推扫/。。。）-->
+				<GSD></GSD>
+				<!--像元分辨率(米)-->
+				<spectral_res></spectral_res>
+				<!--光谱分辨率(纳米)-->
+				<solar_zenith></solar_zenith>
+				<!--太阳高度角-->
+				<sun_azimuth></sun_azimuth>
+				<!--太阳方位角-->
+				<wave_band></wave_band>
+				<!--成像谱段-->
+			</opt_payload>
+        </image_info>
+        <inversion_info>
+            <retrieval_length></retrieval_length>
+            <retrieval_width></retrieval_width>
+            <velocity></velocity>
+            <direction></direction>
+            <area></area><!--必填项-->
+            <aspect_angle></aspect_angle>
+            <incidence_angle></incidence_angle>
+            <radiance></radiance>
+            <electromagnetic_scattering_characteristic>
+                <RCS></RCS>
+                <HRRP_path></HRRP_path>
+                <HRRP_peak></HRRP_peak>
+                <attribute_scatter></attribute_scatter>
+                <pol_scatter></pol_scatter>
+            </electromagnetic_scattering_characteristic>
+            <electron_radiation_characteristic>
+                <radar_data_path></radar_data_path>
+                <pulse_characteristics></pulse_characteristics>
+                <scan_characteristics></scan_characteristics>
+                <radar_emitter></radar_emitter>
+            </electron_radiation_characteristic>
+            <infrared_characteristics>
+                <temperature></temperature>
+                <width_ratio></width_ratio>
+                <perimeter></perimeter>
+                <pseudo_image_path></pseudo_image_path>
+            </infrared_characteristics>
+            <spectral_characteristic>
+                <spectrum_file_path></spectrum_file_path>
+                <curve_peak></curve_peak>
+                <curve_valley></curve_valley>
+                <curve_slope></curve_slope>
+            </spectral_characteristic>
+        </inversion_info>
+        <check_info>
+            <annotation_user></annotation_user>
+            <review_user></review_user>
+            <annotation_time></annotation_time>
+            <review_time></review_time>
+            <status>审核通过</status>			<!--必填项-->
+            <annotation>格式完整,审核合格</annotation>
+            <application_direction>适用方向</application_direction>		<!--必填项-->
+        </check_info>
+    </body>
+</ndm>

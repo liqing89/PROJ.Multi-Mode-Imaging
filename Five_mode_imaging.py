@@ -2,7 +2,7 @@
 该函数用来成像
 '''
 import numpy as np
-import read_data
+import new_production_1021.read_data as read_data
 import scipy.io as sio
 #from skimage import exposure
 import matplotlib.pyplot as plt
@@ -87,8 +87,6 @@ class imaging:
         l = int(I.shape[1]/2 - I.shape[0]/2*0.8); r = int(I.shape[1]/2 + I.shape[0]/2*0.8)
         u = int(I.shape[0]*0.1+1); d = int(I.shape[0]*0.9)
         I = np.array(I[u:d,l:r])
-
-        
 
         if mode == 1:
             # 条带模式下背景自适应量化
