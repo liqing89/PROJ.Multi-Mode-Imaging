@@ -28,36 +28,35 @@ def processForSingle(index_single, X, Y, Z, Intens, povname, IncidentAngle,Azimu
     Z1 = Z[index_single]
     Intens1 = Intens[index_single]
     # print(max(Intens1), min(Intens1))
-    if povname == 'JC' or povname == 'HM': # 舰船 / 航母
+    if povname == 'JC' or povname == 'HM': 
+        # 舰船一次散射的处理方式
+        background = 0.004*(np.sin(IncidentAngle * np.pi /180)/np.sin(45 * np.pi /180))**1.8
         for i in range(len(Z1)):
             if Z1[i] < 0.5:
-                # 如果这个点是地面的话，散射强度下降为0.00016，如果是目标的话，目标散射强度下降1/4
-                Intens1[i] = (1+np.random.rand(1)*0.5)*0.004
+                Intens1[i] = (1+np.random.rand(1)*0.5)*background
             else:
                 if Intens1[i] < 0.04:
                     Intens1[i] = (1+np.random.rand(1)*0.2)*0.01
                 else:
-                    Intens1[i] = Intens1[i]/4 # (1+np.random.rand(1)*0.1)*0.1
+                    Intens1[i] = Intens1[i]/4
 
-    elif povname == 'TK': # 坦克
-        background = 0.005 
-        vz = max(Z1);
+    elif povname == 'TK': 
+        # 坦克的一次散射处理
+        background = 0.0004*(np.sin(IncidentAngle * np.pi /180)/np.sin(35 * np.pi /180))**1.8
         for i in range(len(Z1)):
             if Z1[i] < 0.5:
-                # 如果这个点是地面的话，散射强度下降为0.00016，如果是目标的话，目标散射强度下降1/4
                 Intens1[i] = (1+np.random.rand(1)*0.5)*background
-            elif Z1[i] < vz:
-                if Intens1[i] < 0.32:
-                    Intens1[i] = (1+np.random.rand(1)*0.2)*0.08
-                else:
-                    Intens1[i] = Intens1[i]/4
             else:
-                if Intens1[i] < 0.64:
-                    Intens1[i] = (1+np.random.rand(1)*0.2)*0.16
-                else:
-                    Intens1[i] = Intens1[i]/4
+                if Intens1[i] < 0.0004:
+                    Intens1[i] = 0.0001
+                elif Intens1[i] < 0.005:
+                    Intens1[i] = (1+np.random.rand(1)*0.2)*0.005
+                elif Intens1[i] > 0.006:
+                    Intens1[i] = (1+np.random.rand(1)*0.1)*0.006
 
-    elif povname == 'FJ': # 飞机一次散射
+    elif povname == 'FJ': 
+        # 飞机一次散射
+        
         if "B2" in filename: # B2 隐身飞机 一次散射  
             for i in range(len(Z1)):
                 if Z1[i] < 1: # ground
@@ -93,7 +92,6 @@ def processForSingle(index_single, X, Y, Z, Intens, povname, IncidentAngle,Azimu
                 else: # plane
                     Intens1[i] =  0.1 * Intens1[i] * np.cos(50/180*np.pi)/np.cos(IncidentAngle/180*np.pi)  #自适应背景
 
-
         else: # 普通飞机一次散射
             for i in range(len(Z1)):
                 if Z1[i] < 1: # ground
@@ -112,26 +110,33 @@ def processForDouble(index_double, X, Y, Z, Intens, povname,IncidentAngle,Azimut
     Z2 = Z[index_double]
     Intens2 = Intens[index_double]
     # print(max(Intens2), min(Intens2))
-    if povname == 'JC' or povname == 'HM': # 舰船二次散射的处理方式
+    if povname == 'JC' or povname == 'HM': 
+        # 舰船二次散射的处理方式
         for i in range(len(Intens2)):
             if Z2[i] < 0.5:
                 Intens2[i] = (1+np.random.rand(1)*0.5)*0.004
             else:
                 if Intens2[i] < 0.05:
-                    Intens2[i] = (1+np.random.rand(1)*0.2)*0.08
-                else:
-                    Intens2[i] = (1+np.random.rand(1)*0.2)*0.8
-
-    elif povname == 'TK':    # 坦克二次散射的处理方式
-        
-        for i in range(len(Intens2)):
-            if Z2[i] < 0.5:
-                Intens2[i] = (1+np.random.rand(1)*0.5)*0.008
-            else:
-                if Intens2[i] < 0.05:
                     Intens2[i] = (1+np.random.rand(1)*0.2)*0.05
                 else:
                     Intens2[i] = (1+np.random.rand(1)*0.2)*0.35
+        if filename == 'HMBD': # lij的version是model_name
+            for i in range(len(Intens2)):
+                if Intens2[i] > 0.05:
+                    Intens2[i] = (1+np.random.rand(1)*0.2)*0.15
+
+    elif povname == 'TK':    
+        # 坦克二次散射的处理方式
+        for i in range(len(Intens2)):
+            if Z2[i] < 0.5:
+                Intens2[i] = (1+np.random.rand(1)*0.5)*0.0004
+            else:
+                if Intens2[i] < 0.0004:
+                    Intens2[i] = 0
+                elif Intens2[i] < 0.001:
+                    Intens2[i] = (1+np.random.rand(1)*0.2)*0.001
+                elif Intens2[i] > 0.008:
+                    Intens2[i] = (1+np.random.rand(1)*0.1)*0.008
 
     elif povname == 'FJ':  # 分别讨论三类隐身飞机：B2 / F22 / F35 的二次散射
         
@@ -201,15 +206,11 @@ def  processForTriple(index_Triple, X, Y, Z, Intens, povname,IncidentAngle,filen
     Y3 = Y[index_Triple]
     Z3 = Z[index_Triple]
     Intens3 = Intens[index_Triple]
+    if index_Triple.size == 0:
+        return X3, Y3, Z3, Intens3
     # print(max(Intens3), min(Intens3))
     if povname == 'JC' or povname == 'HM':
         # 舰船三次散射的处理方式
-        # Intens3 = Intens[index_Triple]+max(Intens[index_Triple])
-        # for j in range(len(Intens3)):
-        #     if Intens3[j] < 0.003 and Z3[j] > 1:
-        #         Intens3[j] = 0.003 + np.random.rand(1)*0.0005
-        #     else:
-        #         Intens3[j] = 0.00016
         Intens3 = Intens[index_Triple] + max(Intens[index_Triple])
         for j in range(len(Intens3)):
             if Z3[j] > 0.5:
@@ -219,17 +220,20 @@ def  processForTriple(index_Triple, X, Y, Z, Intens, povname,IncidentAngle,filen
                     Intens3[j] = (1+np.random.rand(1)*0.1)*0.15
             else:
                 Intens3[j] = (1+np.random.rand(1)*0.5)*0.004
+
     elif povname == 'TK':
         # 坦克三次散射的处理方式
-        Intens3 = Intens[index_Triple] + max(Intens[index_Triple])
-        for j in range(len(Intens3)):
-            if Z3[j] > 0.5:
-                if Intens3[j] < 0.05:
-                    Intens3[j] = (1+np.random.rand(1)*0.1)*0.09
-                else:
-                    Intens3[j] = (1+np.random.rand(1)*0.1)*0.15
+         for j in range(len(Intens3)):
+                if Z3[j] > 0.5:
+                if Intens3[j] < 0.0004:
+                    Intens3[j] = 0
+                elif Intens3[j] < 0.001:
+                    Intens3[j] = (1+np.random.rand(1)*0.1)*0.001
+                elif Intens3[j] > 0.007:
+                    Intens3[j] = (1+np.random.rand(1)*0.1)*0.007
             else:
-                Intens3[j] = (1+np.random.rand(1)*0.5)*0.008
+                Intens3[j] = (1+np.random.rand(1)*0.5)*0.0004
+    
     elif povname == 'FJ':
         if "F22" in filename or "F35" in filename or "EA18G" in filename: #小型战斗机三次散射
             for j in range(len(Intens3)):
@@ -289,9 +293,7 @@ def txtProcess(params):
     p_after = np.squeeze(p_after)
 
     # 将目标移到场景中心
-    # X = p_after[:,0]-np.mean(p_after[:,0])
     Y = p_after[:,1]
-    
     Z = p_after[:,2]
     counter = Counter(Z)
     Z_bias = counter.most_common(1)
@@ -377,7 +379,7 @@ if __name__ == "__main__":
     pitchAngel = 40
     Azimuth = 0
     target = "FJ"
-    txtFile = "/home/liq/pro/35Targets/B2/txt/Contributions_40_0_0.txt"
+    txtFile = "/home/liq/pro/35Targets/F16/txt/Contributions_40_0_0.txt"
     # resultMatFile = "/home/lij/pro/Debug/test_B2.mat"
     txtProParams = [Azimuth, pitchAngel, 0, target, 'HH', 147, 95, txtFile]
     elecResult = txtProcess(txtProParams)

@@ -9,7 +9,7 @@ import scipy.io as sio
 import scipy.signal
 from tifffile import imsave
 class imaging:
-    def __init__(self,path, beta_range, beta_azimuth):
+    def __init__(self,path, beta_range, beta_azimuth, model_name, model_type, rho):
         self.data,para = read_data.load_data(path)
         # 光速
         self.c = para['c']
@@ -49,7 +49,11 @@ class imaging:
         self.dr = self.c/2/self.fs
         # 方位向分辨率
         self.dazm = self.Vr/self.PRF
-
+        self.rho = rho
+        # 目标名称
+        self.model_name = model_name
+        # 目标类型
+        self.model_type = model_type
         # 下视角
         self.offNadir = para['offNadir']*np.pi/180
         # 地距分辨率
@@ -133,6 +137,9 @@ class imaging:
         return window
 
     def imgSave(self, mode, imgPath, tiffPath, filename):
+        # 生产测试11/15
+        # 没用到imgSave？
+
         '''
         截取成像区域并显示
         '''
@@ -144,12 +151,7 @@ class imaging:
         Na_start = int(Na/2) - int(self.azmScale/self.dazm/2)
         Na_end = Na_start + int(self.azmScale/self.dazm)
         I = self.image[Na_start:Na_end,Nr_start:Nr_end]
-
-        # 裁剪
-        l = int(I.shape[1]/2 - I.shape[0]/2*0.8); r = int(I.shape[1]/2 + I.shape[0]/2*0.8)
-        u = int(I.shape[0]*0.1+1); d = int(I.shape[0]*0.9)
-        I = np.array(I[u:d,l:r])
-
+        
         # 保存tiff数据
         self.tiffSave(I, tiffPath)
         if mode == 1:
@@ -279,12 +281,54 @@ class imaging:
             I = self.image[Na_start:Na_end,Nr_start:Nr_end]
         
         # 裁剪
-        l = int(I.shape[1]/2 - I.shape[0]/2*0.8); r = int(I.shape[1]/2 + I.shape[0]/2*0.8)
-        u = int(I.shape[0]*0.1+1); d = int(I.shape[0]*0.9)
-        I = np.array(I[u:d,l:r])
+        # 1.飞机裁剪
+        if self.model_type == "FJ"
+            l = int(I.shape[1]/2 - I.shape[0]/2*0.8); r = int(I.shape[1]/2 + I.shape[0]/2*0.8)
+            u = int(I.shape[0]*0.1+1); d = int(I.shape[0]*0.9)
+            I = np.array(I[u:d,l:r])
+            if self.dr * 1.2 == 0.3: # AC130的尺寸测试
+                size = 256;
+            cut_rows = int(rows-size); # 根据需要的图像大小往里缩
+            cut_cols = int(cols-size);
+            I = np.array(I[int(cut_rows/2):int(I.shape[0]-cut_rows/2),int(cut_cols/2):int(I.shape[1]-cut_cols/2)])
+        
+        # 2.航母+舰船+HF/ZHBJC两种目标的裁剪
+        if self.model_type == 'HM' or self.model_name == 'HF' or self.model_name == 'ZHBJC':
+            if self.rho == 1:
+                size = 478
+            elif self.rho == 2:
+                size = 256
+            else:
+                size = 160
+        elif self.model_type == 'JC':
+            if self.rho == 1:
+                size = 256
+            elif self.rho == 2:
+                size = 128
+            else:
+                size = 96
+        else:
+            if self.rho == 0.3:
+                size = 128
+            elif self.rho == 0.2:
+                size = 192
+            else:
+                size = 80
+        u = int(I.shape[0]/2 - size/2); l = int(I.shape[1]/2 - size/2)
+        I = np.array(I[u:u+size,l:l+size])
+
+
+        # # 获取矩阵的大小
+        # rows, cols = I.shape
+        # # 打印矩阵的大小
+        # print("图像大小：{} x {}".format(rows, cols))
+
+    
+
         tif_image = abs(I).astype(np.uint16)
         # 保存tiff数据
         self.tiff = tif_image
+
         if mode == 1:
             # 用dB显示
             I = np.abs(I)
@@ -345,6 +389,7 @@ class imaging:
             self.image = self.scan()
         elif self.mode == 6:
             self.image = self.squint()
+
     def Calculate_Entropy(self,ss):
         # 计算熵
         ss = np.abs(ss)**2
@@ -352,6 +397,7 @@ class imaging:
         Si = ss.sum()
         EI = np.log(Si) - (ss*np.log(ss)).sum()/Si
         return EI
+        
     def Range_profile(self,ss):
         # 读取数据宽度
         Na,Nr = ss.shape
@@ -402,9 +448,9 @@ class imaging:
         # 读取数据宽度
         Na,Nr = ss.shape
         # CS变标
-        f_fast = np.fft.fftshift(np.linspace(-self.fs/2,self.fs/2-self.fs/Nr,Nr).reshape(1,-1))
-        f_slow = np.fft.fftshift(np.linspace(-self.PRF/2,self.PRF/2-self.PRF/Na,Na).reshape(-1,1))
-        cos_theta = np.sqrt(1-(self.lamda*f_slow/2/self.Vr)**2)
+        f_fast = np.fft.fftshift(np.linspace(-self.fs/2,self.fs/2-self.fs/Nr,Nr).reshape(1,-1)) # 速度
+        f_slow = np.fft.fftshift(np.linspace(-self.PRF/2,self.PRF/2-self.PRF/Na,Na).reshape(-1,1))# 距离
+        cos_theta = np.sqrt(1-(self.lamda*f_slow/2/self.Vr)**2)# 角度
         R_start = self.R0 - self.Tp/2*self.c/2
         R_ref = self.R0 + (Nr-self.Tp*self.fs)/2*self.c/2/self.fs
         t_fast = (2*R_start/self.c + np.linspace(0,Nr-1,Nr).reshape(1,-1)/self.fs).reshape(1,-1)
@@ -413,7 +459,6 @@ class imaging:
         ss = ss*np.exp(1j*np.pi*Km*(1/cos_theta-1)*(t_fast-2*R_ref/self.c/cos_theta)**2)
         # 距离徙动和脉冲压缩
         ss = np.fft.fft(ss,axis=1)
-
         ss = ss*np.exp(1j*np.pi/Km*cos_theta*f_fast**2)*np.exp(1j*4*np.pi/self.c*R_ref*(1/cos_theta-1)*f_fast)*self.Rangewindow()
         ss = np.fft.ifft(ss,axis=1)
         self.Range_profile(ss)
@@ -425,9 +470,9 @@ class imaging:
         # self.Range_profile(ss)
         # # 脉冲压缩
         # ss = ss*np.exp(-1j*4*np.pi*Km/self.c**2*(1-cos_theta)*(t_fast/cos_theta-2*R_ref/self.c/cos_theta)**2)#*self.Azimuthwindow()
-        R = t_fast*self.c/2
-        ss = ss*np.exp(1j*4*np.pi*R/self.lamda*cos_theta)
-        ss = np.fft.ifft(ss,axis=0)
+        R = t_fast*self.c/2 # 距离
+        ss = ss*np.exp(1j*4*np.pi*R/self.lamda*cos_theta) # 距离
+        ss = np.fft.ifft(ss,axis=0)# 距离
         #ss = self.transform_coordinate(ss)
         return ss
     def jushu(self):

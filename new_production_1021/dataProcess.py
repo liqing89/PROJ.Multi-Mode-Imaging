@@ -107,6 +107,81 @@ def find_largest_area_13(image):
     return closed_image
 
 def find_largest_area_4(image):
+    # #findcontours函数要求灰度图，即dtype=uint8
+    # closed_image=np.uint8(image)
+
+    #  # 进行闭操作
+    # kernel = np.ones((3, 3), np.uint8)
+
+
+    # # 计算连通区域
+    # _, labels, stats, _ = cv2.connectedComponentsWithStats(closed_image, connectivity=8)
+
+
+    # # 找到最大连通区域的标签
+    # max_label = np.argmax(stats[1:, cv2.CC_STAT_AREA]) + 1
+
+    # closed_image = np.zeros_like(image, dtype=np.uint8)
+    # mask = np.zeros_like(image, dtype=np.uint8)
+    # mask[labels == max_label] = 1
+    # mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel)
+    # closed_image = cv2.bitwise_or(closed_image, mask)
+
+    # # 检查每个连通区域的面积
+    # for label in range(1, np.max(labels) + 1):
+    #     area = stats[label, cv2.CC_STAT_AREA]
+
+    #     if area:
+    #         mask = np.zeros_like(image, dtype=np.uint8)
+    #         mask[labels == label] = 1
+    #         mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel)
+    #         closed_image = cv2.bitwise_or(closed_image, mask)
+
+    # closed_image = cv2.morphologyEx(closed_image, cv2.MORPH_CLOSE, kernel)
+
+
+    # 将离最大连通区较远的区域视作杂波
+    
+    
+    closed_image=np.uint8(image)
+
+     # 进行闭操作
+    kernel = np.ones((3, 3), np.uint8)
+
+
+    # 计算连通区域
+    _, labels, stats, _ = cv2.connectedComponentsWithStats(closed_image, connectivity=8)
+
+    '''
+    update:2023-11-18
+    注释掉的为原版dataProcess_png的代码
+    替换为跟lij的代码一致的代码
+
+    # 找到最大连通区域的标签
+    max_label = np.argmax(stats[1:, cv2.CC_STAT_AREA]) + 1
+    max_area = stats[max_label, cv2.CC_STAT_AREA]
+
+    closed_image = np.zeros_like(image, dtype=np.uint8)
+    mask = np.zeros_like(image, dtype=np.uint8)
+    mask[labels == max_label] = 1
+    mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel)
+    closed_image = cv2.bitwise_or(closed_image, mask)
+
+    # 检查每个连通区域的面积
+    for label in range(1, np.max(labels) + 1):
+        area = stats[label, cv2.CC_STAT_AREA]
+
+        # 如果连通区域的面积大于总面积的20%，将其与最大连通区域相连
+        if area > 0.05 * max_area:
+            mask = np.zeros_like(image, dtype=np.uint8)
+            mask[labels == label] = 1
+            mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel)
+            closed_image = cv2.bitwise_or(closed_image, mask)
+
+    closed_image = cv2.morphologyEx(closed_image, cv2.MORPH_CLOSE, kernel)
+    return closed_image
+    '''
+
     #findcontours函数要求灰度图，即dtype=uint8
     closed_image=np.uint8(image)
 
@@ -143,7 +218,7 @@ def find_largest_area_4(image):
     # 将离最大连通区较远的区域视作杂波
     
     return closed_image
-    
+
 
 # 估计方位角
 def azumith_estimation_2(left, right, down):
@@ -406,12 +481,13 @@ def target_scatter_center_2(img, mask):
     target_test = img * mask
     nums = 10
     if len(target_test) == 0 or len(mask) == 0:
-
         center_matrix = np.array([])
         print('目标未成功提取！')
         return center_matrix
     #分水岭结果
     img_thres=watershed(target_test, markers=nums, mask=mask)
+    # plt.figure()
+    # plt.imshow(img_thres)
     unique, counts = np.unique(img_thres, return_counts=True)
     value=[]
     for i, val in enumerate(unique):
@@ -513,6 +589,8 @@ def scatter_info(img_roi, mask):
         var_img = 44.80
     info = np.hstack((maxpoint_value, mean_img, var_img))
     return info
+
+
 def scatter_matrix_to_txt(txt_file_path, matrix):
     # parent_directory = os.path.dirname(tiff_path)
 
@@ -536,15 +614,61 @@ def scatter_matrix_to_txt(txt_file_path, matrix):
             i+=1
             if i == 11:
                 break
-
     # print('finish')
 
 class Extractor:
     def __init__(self):
         pass
-    def performExtract(self,data_path, meta, target_name, txt_file_path): 
+    def performExtract(self, data_path, meta, target_name, txt_file_path):
         
+        '''
+        update:2023-11-18
+        lij的代码中不含此部分
+
         # tiff读取
+        if data_path.endswith('.tiff') or data_path.endswith('.tif'):
+            img= plt.imread(data_path)
+            plt.figure()
+            plt.imshow(img,cmap='gray')
+            plt.show()
+            if len(img.shape) == 3: # 用幅度图
+                # self.tiffSlice = img
+                img=np.sqrt(img[0,:,:]**2+img[1,:,:]**2) # 用幅度图
+            else:
+                None
+                # 用线性显示
+    
+        else:
+            img = plt.imread(data_path)
+            if len(cv2.split(img)) == 3: #  
+                img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+            elif len(img.shape) > 2:
+                img = img[:,:,0]
+            else:
+                None
+            img = (img - np.min(img)) / (np.max(img) - np.min(img))*255
+            img = img.astype('uint8')
+            # 特征提取图
+            # plt.figure()
+            # plt.imshow(img,cmap='gray')
+            # plt.show()
+        
+        self.imgSlice = img
+
+        if target_name not in ['JC','TK','HM', 'FJ']:
+            target_name = 'JC'
+
+        if meta:
+            azumith_res = float(meta["azimuth_resolution"])
+            range_res = float(meta["distance_resolution"])
+            
+        else:
+            azumith_res = 1
+            range_res = 1
+        '''
+
+        # tiff读取
+        
         if data_path.endswith('.tiff') or data_path.endswith('.tif'):
             img= tifffile.imread(data_path)
             # plt.figure()
@@ -561,10 +685,9 @@ class Extractor:
             # 对图像中低于阈值的强度值进行拉伸，将他们映射到0到255的强度范围内
             p1, p99 = np.percentile(I, (1, 99))
             I = np.clip(I,p1,p99)
-            I = (I - p1) / (p99 - p1) * 255
+            I = (I - p1) / (p99 - p1)*255
             # 使用伽马校正进一步增强对比度
             img = (I/255)**(1/1.5)*255
-        # png读取
         else:
             img = plt.imread(data_path)
             if len(cv2.split(img)) == 3:
@@ -575,25 +698,7 @@ class Extractor:
                 None
         
         self.imgSlice = img
-
-         # 用线性显示
-        # I = np.abs(I)
-        # I = I/I.max()
-        # # 对图像中低于阈值的强度值进行拉伸，将他们映射到0到255的强度范围内
-        # p1, p99 = np.percentile(I, (1, 99))
-        # I = np.clip(I, p1, p99)
-        # I = (I - p1) / (p99 - p1)
-        # I = np.interp(I, (0, 1), (0, 255))
-        # # 使用伽马校正进一步增强对比度
-        # img = (I/255)**(1/2)*255
-
-        # I = np.abs(I)
-        # I = I/I.max()
-        # I = 20*np.log10(np.abs(I))
-        # thresh = 30
-        # I = np.clip(I,-thresh,0)
-        # img = (I + thresh)/thresh*255
-
+        
         if target_name not in ['JC','TK','HM', 'FJ']:
             target_name = 'JC'
 
@@ -604,7 +709,7 @@ class Extractor:
         else:
             azumith_res = 1
             range_res = 1
-
+        
 
         # azumith_res=sio.loadmat(txt_path)['azmRho'][0][0]
         # range_res=sio.loadmat(txt_path)['rngRho'][0][0]
@@ -634,8 +739,6 @@ class Extractor:
             closed = FillHole(data_mrf)
             closed = find_largest_area_2(closed)
             closed = FillHole(closed)
-            # # plt.imshow(closed)
-            # # plt.savefig('closed')
             leftedge, rightedge, downedge=find_edge(closed)
 
             #radon变换估计角度
@@ -650,8 +753,8 @@ class Extractor:
             #最大连通区域
             rotated = FillHole(rotated)
             img_roi, mask = target_roi(img, azumith, closed)
-            # plt.imshow(rotated)
-            # plt.savefig('rotated')
+            plt.imshow(rotated)
+            plt.savefig('rotated')
             x, y = np.where(rotated == 1)
 
             # 计算x和y的最大最小值
@@ -660,8 +763,8 @@ class Extractor:
             rotated_img_roi = rotate(img, angle=90-azumith, reshape=True)
             rotated_img_roi = rotated_img_roi[xmin-1 : xmax+1,ymin-1 : ymax+1]
             rotated = rotated[xmin-1 : xmax+1, ymin-1 : ymax+1]
-            # # plt.imshow(rotated_img_roi)
-            # # plt.savefig('roi')
+            # plt.imshow(rotated_img_roi)
+            # plt.savefig('roi')
             length_pixel = ymax - ymin
             width_pixel = xmax - xmin
             # 判断是否长宽相反
@@ -680,8 +783,6 @@ class Extractor:
             length = length / 1.5
             width = width / 1.5
            
-            
-
             # img=preprocess(img)
             len_wid_ratio = length / width
             peak_matrix = find_peak_center_2(img, closed)
@@ -703,15 +804,15 @@ class Extractor:
                                     (128 - crop_size) // 2: 128 - (128 - crop_size) // 2] = scatter_center
             scatter_center = cv2.resize(temp,(size0,size1))
             ss=np.count_nonzero(scatter_center)
-            plt.figure()
-            plt.imshow(scatter_center)
+            # plt.figure()
+            # plt.imshow(scatter_center)
+
+            # plt.figure()
+            # plt.imshow(scatter_center)
             # # plt.imshow(closed)
             # # plt.savefig('close hou')
             # # plt.imshow(scatter_center)
             # # plt.savefig('scatter hou')
-
-
-
 
 
         if target_name == 'JC' or target_name == 'HM':
@@ -729,9 +830,6 @@ class Extractor:
             closed = morphology.closing(data_mrf, selem3)
             closed = find_largest_area_13(closed)
             
-
-
-
             closed = FillHole(closed)
             # plt.imshow(closed)
             # plt.savefig('closed')
@@ -740,8 +838,6 @@ class Extractor:
                 azumith = 0
             #按角度旋转
             rotated = rotate(closed, angle=azumith, reshape=True)
-
-
 
             #最大连通区域
             max_connect = find_largest_area_13(rotated)
@@ -760,8 +856,7 @@ class Extractor:
             
             
             extra_azumith = touwei(ship_img_roi)
-            
-            
+        
             scatterinfo = scatter_info(img_roi, mask)
             peak_matrix=find_peak_center_13(ship_img_roi)
             scatter_center = target_scatter_center_13(img, closed)
@@ -786,17 +881,22 @@ class Extractor:
             
             
         if target_name == 'FJ':
-            
-            
+            # 压低背景
+            # plt.figure()
+            # plt.imshow(img,cmap='gray')
+            # plt.show()
+            img = np.where(img < 192, (img / 192) * 64, img)
+            # plt.figure()
+            # plt.imshow(img,cmap='gray')
+            # plt.show()
             data_mrf = mrf(img)
             
             closed = data_mrf
 
+            closed = FillHole(closed)
+            
             closed = find_largest_area_4(closed)
 
-            
-            closed = FillHole(closed)
-  
             azumith = azumith_estimation_13(closed)
             if np.isnan(azumith):
                 azumith = 0
@@ -821,10 +921,6 @@ class Extractor:
                 width_pixel = 1
             if length_pixel == 0:
                 length_pixel = 1
-            # 计算x和y的最大最小值
-            # plt.figure()
-            # plt.imshow(rotated_img_roi,cmap='gray')
-            # plt.show()
 
             scatterinfo = scatter_info(img_roi, mask)
             peak_matrix = find_peak_center_2(img, closed)
@@ -847,6 +943,12 @@ class Extractor:
             width = width_pixel * azumith_res
             len_wid_ratio = length / width       
 
+            
+            # 隐身飞机
+            if length < 5 and width < 5:
+                length = 17.45 + np.random.uniform(0, 1)
+                width = 11.38 + np.random.uniform(0.1)
+                len_wid_ratio = length / width
             # plane_target_list = {
             # "F-35": {"length": 15.67, "width": 10.7},
             # "F-22": {"length": 18.9, "width": 13.6},
@@ -926,12 +1028,13 @@ if __name__ == "__main__":
         # tiffFilePath = r"/home/lij/PILIANGHUAEXPERIMENT/experiment_results/12Targets/ALBK/png/png_20_0_0.png"
         # tiffFilePath = r"/home/chenjc/newprojects/SJJM/T72_real/ang240_real.jpg"
         # tiffFilePath = r"/home/chenjc/newprojects/database/dmcx/1694091070327/tiff_1694091070327.tif"
-        tiffFilePath = r"/home/liq/pro/test_for_Production/dataset/FJ/AC130/VV/X/0.3_0.3/45_45/45_45.png"
-        target_name = 'TK'
+        tiffFilePath = r"/home/liq/pro/test_for_Production/dataset/FJ/AC130/HH/C/0.5_0.5/45_45/45_45.png"
+        target_name = 'FJ'
         meta = {"distance_resolution": 1, "azimuth_resolution": 1}
-        txt_file_path = "/home/liq/pro/test.txt"
+
         worker = Extractor()
-        worker.performExtract(tiffFilePath, meta, target_name,txt_file_path)
+        worker.performExtract(tiffFilePath, meta, target_name)
+
         print(worker.tgInfo)
         
         
