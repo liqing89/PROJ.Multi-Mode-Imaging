@@ -13,13 +13,22 @@ import numpy as np
 import math
 from osgeo import gdal, osr
 import matplotlib.pyplot as plt
+from zipfile import ZipFile 
+
+def zip_folder(folder_path, zip_name):
+    with ZipFile(zip_name, 'w') as zipf:
+        for foldername, subfolders, filenames in os.walk(folder_path):
+            for filename in filenames:
+                file_path = os.path.join(foldername, filename)
+                arcname = os.path.relpath(file_path, folder_path)
+                zipf.write(file_path, arcname)
 
 def addGeoInfoToTiff(tiffPath, outPath, cenLng, cenLat, xRes, yRes):
 
     image_data = tifffile.imread(tiffPath)
     Na, Nr = image_data.shape
-    lng_pix = xRes * 360/(2*math.pi*6371e3)
-    lat_pix = yRes * 360/(2*math.pi*6371e3*math.cos(math.radians(cenLat)))
+    lng_pix = xRes * 360 /(2*math.pi*6371e3)
+    lat_pix = yRes * 360 /(2*math.pi*6371e3*math.cos(math.radians(cenLat)))
 
     startLng = cenLng - Na/2 * lng_pix
     startLat = cenLat - Nr/2 * lat_pix
@@ -105,7 +114,6 @@ def dictToXmlFile(xmlFilePath, data):
 
 def xmlFileToDict(xmlFilePath):
     
-
     # Read the XML file
     with open(xmlFilePath, 'r', encoding='utf-8') as file:
         xml_str = file.read()

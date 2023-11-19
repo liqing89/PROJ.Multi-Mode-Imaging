@@ -65,7 +65,7 @@ def processForSingle(index_single, X, Y, Z, Intens, povname, IncidentAngle,Azimu
                     Intens1[i] =  0.05 * Intens1[i] * np.cos(50/180*np.pi)/np.cos(IncidentAngle/180*np.pi)  #自适应背景
 
 
-        elif "F16" in filename or "F18" in filename or "EA18G" in filename: # 小型战斗机一次散射
+        elif "F16" in filename or "F18" in filename or "EA18G" in filename or "F15" in filename: # 小型战斗机一次散射
             count_max = 0;
             for i in range(len(Z1)):
                 beta = 0.8 # 幂次
@@ -175,7 +175,7 @@ def processForDouble(index_double, X, Y, Z, Intens, povname,IncidentAngle,Azimut
                         Intens2[i] = Intens2[i] * 0.06 /  ( Intens2[i] ** (beta) ) # 0.06->0.08
 
         
-        elif "F16" in filename or "F18" in filename or "EA18G" in filename: # 小型战斗机二次散射的处理方式
+        elif "F16" in filename or "F18" in filename or "EA18G" in filename or "F15" in filename: # 小型战斗机二次散射的处理方式
             for i in range(len(Intens2)):
                     Intens2[i] =  Intens2[i] * 0.1
 
@@ -224,7 +224,7 @@ def  processForTriple(index_Triple, X, Y, Z, Intens, povname,IncidentAngle,filen
     elif povname == 'TK':
         # 坦克三次散射的处理方式
          for j in range(len(Intens3)):
-                if Z3[j] > 0.5:
+            if Z3[j] > 0.5:
                 if Intens3[j] < 0.0004:
                     Intens3[j] = 0
                 elif Intens3[j] < 0.001:

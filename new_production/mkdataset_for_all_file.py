@@ -1,5 +1,5 @@
 import numpy as np
-from utils import dictToXmlFile, xmlFileToDict, CurrTime
+from utils import dictToXmlFile, xmlFileToDict, CurrTime, addGeoInfoToTiff
 from dataProcess import Extractor # 11-18更新为data Process 与lij的代码合并
 import tifffile as tiff
 import subprocess
@@ -10,6 +10,7 @@ import scipy.io as sio # 后面三个为成像库
 from read_data import * 
 from Five_mode_imaging_V2 import *
 import matplotlib.image as mpimg
+from utils import zip_folder
 
 def mkdataset(model_name, model_info_folder, model_xml_file, current_save_folder, current_mid_folder, distributionx, distributiony, RayH, RayW,
               target_type, x_cut, y_cut, scanMode, Rho, beta_range, beta_azimuth, wave_band, polarization, squiAng):
@@ -51,8 +52,8 @@ def mkdataset(model_name, model_info_folder, model_xml_file, current_save_folder
     os.makedirs(current_save_folder)
 
     # 生成缓存文件夹
-    # if os.path.exists(current_mid_folder):
-    #     shutil.rmtree(current_mid_folder)
+    if os.path.exists(current_mid_folder):
+        shutil.rmtree(current_mid_folder)
     save_mid_result_folder = current_mid_folder
     os.makedirs(save_mid_result_folder)
 
@@ -64,15 +65,16 @@ def mkdataset(model_name, model_info_folder, model_xml_file, current_save_folder
     save_img_folder_name = save_mid_result_folder + '/img/'
 
     # 生成缓存文件夹
-    # os.makedirs(save_pov_folder_name)
-    # os.makedirs(save_txt_folder_name)
-    # os.makedirs(save_mat_folder_name)
-    # os.makedirs(save_echo_folder_name)
-    # os.makedirs(save_img_folder_name)
+    os.makedirs(save_pov_folder_name)
+    os.makedirs(save_txt_folder_name)
+    os.makedirs(save_mat_folder_name)
+    os.makedirs(save_echo_folder_name)
+    os.makedirs(save_img_folder_name)
 
     print('开始生产目标：' + model_name + '，目标类型：' + target_type + '，极化：' + polarization + '，波段：' + wave_band + '，分辨率：' + str(Rho))
     povfilename = model_info_folder + model_name +'.pov'
     xmlfilename = model_info_folder + model_name +'.xml'
+    # print(xmlfilename);
 
     # 取出几何模型
     with open(povfilename,'r',encoding='utf-8') as f1:
@@ -167,7 +169,7 @@ def mkdataset(model_name, model_info_folder, model_xml_file, current_save_folder
     settingsPath = save_mid_result_folder + '/settings.mat'        
 
     # 俯仰角设置
-    for incidentAngle in range(40,56,50): # 俯仰角（18，56，5）（改）
+    for incidentAngle in range(18,56,5): # 俯仰角（18，56，5）（改）
         # 根据下视角和方位角计算相机位置
         # 相机初始位置,即方位角为0时
         Z = 700*np.cos(incidentAngle/180 * np.pi)
@@ -177,27 +179,34 @@ def mkdataset(model_name, model_info_folder, model_xml_file, current_save_folder
         RayH_change = np.sqrt((RayH+1e6/np.cos(incidentAngle/180 * np.pi))**2-(1e6)**2)-1e6/np.cos(incidentAngle/180 * np.pi)*np.sin(incidentAngle/180 * np.pi)
         x_cut_change = np.sqrt((x_cut+1e6/np.cos(incidentAngle/180 * np.pi))**2-(1e6)**2)-1e6/np.cos(incidentAngle/180 * np.pi)*np.sin(incidentAngle/180 * np.pi)
         
-        for j in range(0,36,100): # 方位角0-360度 20度一个（改）
+        for j in range(0,36,2): # 方位角0-360度 20度一个（改）
             # 方位角设置
             current_degree = j*10 # 方位角间隔2*10度（改）
             # print('current degree:'+str(current_degree));
             # 设置存储文件
-            # current_name = str(incidentAngle)+'_'+str(current_degree);
-            current_name = 'image_'+str(j*10)+'_'+str(t);
+            current_name = str(incidentAngle)+'_'+str(current_degree);
+            # current_name = 'image_'+str(j*10);
             current_save_name = current_save_folder + current_name
             os.makedirs(current_save_name)
 
             # 步骤1：初始化pov、xml文件
+
+            '''
+            update：2023-11-19
+            lij原版代码：Y0 = Y*np.cos((current_degree+90)/180 * np.pi)
+            现在逆时针转回90度（和调试代码保持一致）
+            '''
+
             # 当前角度
             Z0 = Z
-            Y0 = Y*np.cos((current_degree+90)/180 * np.pi)
-            X0 = Y*np.sin((current_degree+90)/180 * np.pi)*(-1)
+            Y0 = Y*np.cos((current_degree)/180 * np.pi)
+            X0 = Y*np.sin((current_degree)/180 * np.pi)*(-1)
 
             # pov
             # 当前角度
             Z0 = Z
-            Y0 = Y*np.cos((current_degree+90)/180 * np.pi)
-            X0 = Y*np.sin((current_degree+90)/180 * np.pi)*(-1)
+            Y0 = Y*np.cos((current_degree)/180 * np.pi)
+            X0 = Y*np.sin((current_degree)/180 * np.pi)*(-1)
             # 初始化pov文件
             content = ['#include "colors.inc"\n#include "finish.inc"\nglobal_settings{SAR_Output_Data 1 SAR_Intersection 1}\n']
             camera = ['#declare Cam = camera {\northographic\n']
@@ -293,7 +302,7 @@ def mkdataset(model_name, model_info_folder, model_xml_file, current_save_folder
             # 步骤5：进行成像处理并存为.tiff文件
             save_tiff_path = current_save_name + '/' + model_xml_dict["ndm"]["body"]["target_info"]["target_name"] + '.tiff'
             save_range_path = current_save_name + '/' + model_xml_dict["ndm"]["body"]["target_info"]["target_name"] + '_hrrp.txt'
-            save_png_path = current_save_name + '/' + current_name + '.png'
+            save_png_path = current_save_name + '/' + model_xml_dict["ndm"]["body"]["target_info"]["target_name"] + '.png'
             # 成像
             imaging_current = imaging(echoResultPath, beta_range, beta_azimuth, model_name, target_type, Rho) #
             imaging_current.imaging()
@@ -311,8 +320,9 @@ def mkdataset(model_name, model_info_folder, model_xml_file, current_save_folder
             model_xml_dict["ndm"]["body"]["inversion_info"]["electromagnetic_scattering_characteristic"].update({"HRRP_path": model_xml_dict["ndm"]["body"]["target_info"]["target_name"]+'_hrrp.txt'})
             # 储存.tiff
             tiff.imwrite(save_tiff_path, np.array(imaging_current.img, dtype=np.uint8))     
-            addGeoInfoToTiff(save_tiff_path, save_tiff_path, base_coordinate[0], base_coordinate[1], imaging_current.dazm, imaging_current.dazm)
-            mpimg.imsave(current_save_name + '/' + model_xml_dict["ndm"]["body"]["target_info"]["target_name"] + '.png', np.array(imaging_current.img, dtype=np.uint8), cmap=plt.cm.gray)
+            addGeoInfoToTiff(save_tiff_path, save_tiff_path, scn['tgLng'], scn['tgLat'], imaging_current.dazm, imaging_current.dazm)
+            # save_png_path = current_save_name + '/' + model_xml_dict["ndm"]["body"]["target_info"]["target_name"] + '.png'
+            mpimg.imsave(save_png_path, np.array(imaging_current.img, dtype=np.uint8), cmap=plt.cm.gray)
 
             # 步骤6：进行目标特征提取
             save_scatter_Path = current_save_name + '/' + model_xml_dict["ndm"]["body"]["target_info"]["target_name"] + '_attr.txt'
@@ -342,8 +352,10 @@ def mkdataset(model_name, model_info_folder, model_xml_file, current_save_folder
                 model_xml_dict["ndm"]["body"]["inversion_info"].update({"incidence_angle": incidentAngle})
                 model_xml_dict["ndm"]["body"]["inversion_info"]["electromagnetic_scattering_characteristic"].update({"attribute_scatter": model_xml_dict["ndm"]["body"]["target_info"]["target_name"] + '_attr.txt'})
                 # 更新存储xml文件
-                savexmlname = current_save_name + '/' + current_name + '.xml'
+                savexmlname = current_save_name + '/' + model_xml_dict["ndm"]["body"]["target_info"]["target_name"] + '.xml'
                 dictToXmlFile(savexmlname, model_xml_dict)
+                zip_folder(current_save_name, current_save_name+'.zip')
+                shutil.rmtree(current_save_name)
             except Exception as e:
                 print(e)
                 continue    
