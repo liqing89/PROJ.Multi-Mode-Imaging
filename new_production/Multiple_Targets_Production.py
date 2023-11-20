@@ -30,13 +30,12 @@ for i in range(len(model_Name)):
     # 分辨率设置
     if model_Type[i] == 'JC' or model_Type[i] == 'HM':
         flag = 'JC'
-        Rho_list = [3, 2, 1]
+        Rho_list = [2] # [3, 2, 1]
     elif model_Type[i] == 'FJ' or model_Type[i] == 'TK':
         flag = model_Type[i]
-        Rho_list = [0.5,0.3,0.2] # 小飞机分辨率 （改 [0.5, 0.3, 0.2]）
+        Rho_list = [0.3] # 小飞机分辨率（改 [0.5, 0.3, 0.2]）
         if model_Name[i] == 'C17' or model_Name[i] == 'B52' or model_Name[i] == 'B2' or model_Name[i] == 'B1B' or model_Name[i] == 'AC130' or model_Name[i] == 'KC135':
-            # 大飞机分辨率 （改 [1, 0.5, 0.3]）
-            Rho_list = [1,0.5,0.3] 
+            Rho_list = [0.3] # 大飞机分辨率（改 [1, 0.5, 0.3]）
     else:
         pass
 
@@ -101,10 +100,10 @@ for i in range(len(model_Name)):
                 # with open(time_record,'a+',encoding='utf-8') as f:
                 #     f.write('%s极化，%s波段，分辨率%s，生产时间：%dh %dm %ds\n' % (polarization, wave_band, str(Rho), int(int(T3-T2)/3600), int((int(T3-T2)%3600)/60), int((int(T3-T2)%3600)%60)))
                 # f.close()
-    T1 = time.time()
-    with open(time_record,'a+',encoding='utf-8') as f:
-        f.write('%s生产时间：%dh %dm %ds\n' % (model_Name[i], int(int(T1-T0)/3600), int((int(T1-T0)%3600)/60), int((int(T1-T0)%3600)%60)))
-    f.close()
+    # T1 = time.time()
+    # with open(time_record,'a+',encoding='utf-8') as f:
+    #     f.write('%s生产时间：%dh %dm %ds\n' % (model_Name[i], int(int(T1-T0)/3600), int((int(T1-T0)%3600)/60), int((int(T1-T0)%3600)%60)))
+    # f.close()
 
 from utils import zip_folder
 zip_folder(save_folder[:-1], save_folder[:-1]+'.zip')

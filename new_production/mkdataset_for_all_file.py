@@ -169,7 +169,7 @@ def mkdataset(model_name, model_info_folder, model_xml_file, current_save_folder
     settingsPath = save_mid_result_folder + '/settings.mat'        
 
     # 俯仰角设置
-    for incidentAngle in range(18,56,5): # 俯仰角（18，56，5）（改）
+    for incidentAngle in range(18,56,15): # 俯仰角（18，56，5）（改）
         # 根据下视角和方位角计算相机位置
         # 相机初始位置,即方位角为0时
         Z = 700*np.cos(incidentAngle/180 * np.pi)
@@ -179,7 +179,7 @@ def mkdataset(model_name, model_info_folder, model_xml_file, current_save_folder
         RayH_change = np.sqrt((RayH+1e6/np.cos(incidentAngle/180 * np.pi))**2-(1e6)**2)-1e6/np.cos(incidentAngle/180 * np.pi)*np.sin(incidentAngle/180 * np.pi)
         x_cut_change = np.sqrt((x_cut+1e6/np.cos(incidentAngle/180 * np.pi))**2-(1e6)**2)-1e6/np.cos(incidentAngle/180 * np.pi)*np.sin(incidentAngle/180 * np.pi)
         
-        for j in range(0,36,2): # 方位角0-360度 20度一个（改）
+        for j in range(0,36,12): # 方位角0-360度 20度一个（改）
             # 方位角设置
             current_degree = j*10 # 方位角间隔2*10度（改）
             # print('current degree:'+str(current_degree));

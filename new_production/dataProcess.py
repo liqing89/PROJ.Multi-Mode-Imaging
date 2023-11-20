@@ -797,8 +797,8 @@ class Extractor:
             temp[(128 - crop_size) // 2 : 128 - (128 - crop_size) // 2, \
                                     (128 - crop_size) // 2: 128 - (128 - crop_size) // 2] = closed
             closed = cv2.resize(temp,(size0,size1))
-            plt.figure()
-            plt.imshow(closed)
+            # plt.figure()
+            # plt.imshow(closed)
             temp = np.zeros((128,128))
             temp[(128 - crop_size) // 2 : 128 - (128 - crop_size) // 2, \
                                     (128 - crop_size) // 2: 128 - (128 - crop_size) // 2] = scatter_center
