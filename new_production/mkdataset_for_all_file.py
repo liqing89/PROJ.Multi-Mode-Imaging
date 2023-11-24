@@ -239,6 +239,11 @@ def mkdataset(model_name, model_info_folder, model_xml_file, current_save_folder
             if target_type != 'TK':
                 model_xml_dict["ndm"]["body"]["target_info"].update({"level_3_class": current_xml_dict["ndm"]["body"]["target_info"]["label3"]})
                 model_xml_dict["ndm"]["body"]["target_info"].update({"level_4_class": current_xml_dict["ndm"]["body"]["target_info"]["label4"]})
+            if model_name == 'DDZD' or model_name == 'JC' or model_name == 'GK':
+                model_xml_dict["ndm"]["body"]["target_info"].update({"level_1_class": ''})
+                model_xml_dict["ndm"]["body"]["target_info"].update({"level_2_class": ''})
+                model_xml_dict["ndm"]["body"]["target_info"].update({"level_3_class": ''})
+                model_xml_dict["ndm"]["body"]["target_info"].update({"level_4_class": ''})
             model_xml_dict["ndm"]["body"]["target_info"].update({"target_model": current_xml_dict["ndm"]["body"]["target_info"]["target_model"]})
             model_xml_dict["ndm"]["body"]["target_info"].update({"military_base": military_base})
             model_xml_dict["ndm"]["body"]["target_info"].update({"base_coordinate": base_coordinate})

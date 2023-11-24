@@ -330,6 +330,13 @@ class imaging:
                 size = 128
             else:   #self.rho == 3:
                 size = 96
+            if self.model_name == 'DDZD':
+                if self.rho == 3:
+                    size = 450
+                elif self.rho == 2:
+                    size = 650
+                else:
+                    size = 1300
             u = int(I.shape[0]/2 - size/2); l = int(I.shape[1]/2 - size/2)
             I = np.array(I[u:u+size,l:l+size])       
 

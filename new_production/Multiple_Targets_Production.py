@@ -21,23 +21,26 @@ mid_folder = '/home/data1/user/PiLiangHuaExperiment/Dataset_for_Production_MidRe
 # 设置XML模板文件
 model_xml_file_head = '/home/lij/PILIANGHUAEXPERIMENT/xmlModel_'
 # 清空时间记录
-# with open(time_record,'a+',encoding='utf-8') as f:
-#     f.truncate(0)
-# f.close()
+with open(time_record,'a+',encoding='utf-8') as f:
+    f.truncate(0)
+f.close()
 # 开始生产
 for i in range(len(model_Name)):
-    # T0 = time.time()
+    T0 = time.time()
     # 分辨率设置
     if model_Type[i] == 'JC' or model_Type[i] == 'HM':
         flag = 'JC'
-        Rho_list = [2] # [3, 2, 1]
-    elif model_Type[i] == 'FJ' or model_Type[i] == 'TK':
+        Rho_list = [3, 2, 1] # [3, 2, 1]
+    elif model_Type[i] == 'FJ':
         flag = model_Type[i]
-        Rho_list = [0.3] # 小飞机分辨率（改 [0.5, 0.3, 0.2]）
+        Rho_list = [0.5, 0.3, 0.2] # [0.5, 0.3, 0.2]
         if model_Name[i] == 'C17' or model_Name[i] == 'B52' or model_Name[i] == 'B2' or model_Name[i] == 'B1B' or model_Name[i] == 'AC130' or model_Name[i] == 'KC135':
-            Rho_list = [0.3] # 大飞机分辨率（改 [1, 0.5, 0.3]）
+            Rho_list =  [1, 0.5, 0.3] # [1, 0.5, 0.3]
     else:
-        pass
+        flag = 'DMMB'
+        Rho_list = [0.5, 0.3, 0.2]
+        if model_Name[i] == 'DDZD':
+             Rho_list = [3] #  [3，2，1]
 
     model_info_folder = '/home/lij/PILIANGHUAEXPERIMENT/35_Targets_POV_and_XML/' + model_Name[i] + '/'
     model_xml_file = model_xml_file_head + flag + '.xml'
@@ -85,6 +88,9 @@ for i in range(len(model_Name)):
                 elif model_Type[i] == 'TK':
                     distributionx = 35
                     distributiony = 35
+                    if model_Name[i] == 'DDZD':
+                        distributionx = 1505
+                        distributiony = 1505
                     x_cut = distributionx-5
                     y_cut = distributiony-5
                     RayH = y_cut/Rho
@@ -93,8 +99,8 @@ for i in range(len(model_Name)):
                     beta_azimuth = 2.5
                 else:
                     pass
-                current_save_folder = save_folder + model_Type[i] + '/' + model_Name[i] + '/' + polarization + '/' + wave_band + '/' + str(Rho) + '_' + str(Rho) + '/'
-                current_mid_folder = mid_folder + model_Type[i] + '/' + model_Name[i] + '/' + polarization + '/' + wave_band + '/' + str(Rho) + '_' + str(Rho)
+                current_save_folder = save_folder + flag + '/' + model_Name[i] + '/' + polarization + '/' + wave_band + '/' + str(Rho) + '_' + str(Rho) + '/'
+                current_mid_folder = mid_folder + flag + '/' + model_Name[i] + '/' + polarization + '/' + wave_band + '/' + str(Rho) + '_' + str(Rho)
                 mkdataset(model_Name[i], model_info_folder, model_xml_file, current_save_folder, current_mid_folder, distributionx, distributiony, RayH, RayW, model_Type[i], x_cut, y_cut, scanMode, Rho, beta_range, beta_azimuth, wave_band, polarization, squiAng)
                 # T3 = time.time()
                 # with open(time_record,'a+',encoding='utf-8') as f:
