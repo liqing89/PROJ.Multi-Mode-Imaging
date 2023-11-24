@@ -30,7 +30,7 @@ for i in range(len(model_Name)):
     # 分辨率设置
     if model_Type[i] == 'JC' or model_Type[i] == 'HM':
         flag = 'JC'
-        Rho_list = [3, 2, 1] # [3, 2, 1]
+        Rho_list = [2] # [3, 2, 1]
     elif model_Type[i] == 'FJ':
         flag = model_Type[i]
         Rho_list = [0.5, 0.3, 0.2] # [0.5, 0.3, 0.2]
