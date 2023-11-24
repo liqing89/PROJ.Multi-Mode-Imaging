@@ -172,8 +172,8 @@ def mkdataset(model_name, model_info_folder, model_xml_file, current_save_folder
     for incidentAngle in range(18,56,15): # 俯仰角（18，56，5）（改）
         # 根据下视角和方位角计算相机位置
         # 相机初始位置,即方位角为0时
-        Z = 700*np.cos(incidentAngle/180 * np.pi)
-        Y = 700*np.sin(incidentAngle/180 * np.pi)
+        Z = 5000*np.cos(incidentAngle/180 * np.pi)
+        Y = 5000*np.sin(incidentAngle/180 * np.pi)
         # 调整场景大小、射线数量以及裁剪大小
         distributiony_change = np.sqrt((distributiony+1e6/np.cos(incidentAngle/180 * np.pi))**2-(1e6)**2)-1e6/np.cos(incidentAngle/180 * np.pi)*np.sin(incidentAngle/180 * np.pi)
         RayH_change = np.sqrt((RayH+1e6/np.cos(incidentAngle/180 * np.pi))**2-(1e6)**2)-1e6/np.cos(incidentAngle/180 * np.pi)*np.sin(incidentAngle/180 * np.pi)
