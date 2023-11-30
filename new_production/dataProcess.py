@@ -596,7 +596,7 @@ def scatter_matrix_to_txt(txt_file_path, matrix):
 
     # 创建 txt 文件路径
     i = 1
-    # txt_file_path = os.path.join(parent_directory, "scatter_matrix.txt")
+    # txt_file_path = os.path.join(parent_directory, "attr.txt")
     nonzero_indices = np.transpose(np.nonzero(matrix))
     nonzero_values = matrix[np.nonzero(matrix)]*255
     nonzero_values = nonzero_values.astype('int')
@@ -604,17 +604,19 @@ def scatter_matrix_to_txt(txt_file_path, matrix):
     sorted_indices = np.argsort(nonzero_values)[::-1]
     nonzero_indices = nonzero_indices[sorted_indices]
     nonzero_values = nonzero_values[sorted_indices]
-    
+
     # 取最大的10个
-    for index, value in zip(nonzero_indices, nonzero_values):      
+    with open(txt_file_path, 'a') as file:
+        file.write("0,255\n")
+    for index, value in zip(nonzero_indices, nonzero_values):
         with open(txt_file_path, 'a') as file:
-            file.write("第"+str(i)+"个强散射点坐标位置:\n")
-            file.write("("+str(index[0])+","+str(index[1])+")\n")
-            file.write("第"+str(i)+"个强散射点大小：\n"+str(value)+"\n")
+            file.write(str(index[0])+","+str(index[1])+","+str(value)+"\n")
             i+=1
             if i == 11:
                 break
-    # print('finish')
+            if value <= 10:
+                break
+
 
 class Extractor:
     def __init__(self):

@@ -25,27 +25,6 @@ def mkdataset(model_name, model_info_folder, model_xml_file, current_save_folder
     rngRho = Rho
     azmRho = Rho
 
-    if target_type == 'HM' or target_type == 'JC':
-        military_base = '梅波特海军基地'
-        base_coordinate = '30.38, -81.41'
-    elif target_type == 'FJ':
-        military_base = '内利斯空军基地'
-        base_coordinate = '36.24, -115.05'
-    else:
-        military_base = '埃格林空军基地'
-        base_coordinate = '30.46, -86.55'
-
-    if target_type == 'HM':
-        target_flag1 = 'jc'
-    else:
-        target_flag1 = target_type.lower()
-    
-    if target_type == 'TK' or target_type == 'HM':
-        target_flag2 = 'jc'
-    else:
-        target_flag2 = target_type.lower()
-
-
     # 初始化文件目录
     if os.path.exists(current_save_folder):
         shutil.rmtree(current_save_folder)
@@ -74,7 +53,6 @@ def mkdataset(model_name, model_info_folder, model_xml_file, current_save_folder
     print('开始生产目标：' + model_name + '，目标类型：' + target_type + '，极化：' + polarization + '，波段：' + wave_band + '，分辨率：' + str(Rho))
     povfilename = model_info_folder + model_name +'.pov'
     xmlfilename = model_info_folder + model_name +'.xml'
-    # print(xmlfilename);
 
     # 取出几何模型
     with open(povfilename,'r',encoding='utf-8') as f1:
@@ -152,8 +130,8 @@ def mkdataset(model_name, model_info_folder, model_xml_file, current_save_folder
 
     # 场景约束
     scn = {"tgLat": 28.06194738,\
-        "tgLng": 112.89267163,\
-        "tgHeight": 54.8}
+           "tgLng": 112.89267163,\
+           "tgHeight": 54.8}
 
     # 雷达参数
     radar = {"c": 3e8, "fc": fc, "Tp": 5e-6, "riseRatio": 16}
@@ -169,7 +147,7 @@ def mkdataset(model_name, model_info_folder, model_xml_file, current_save_folder
     settingsPath = save_mid_result_folder + '/settings.mat'        
 
     # 俯仰角设置
-    for incidentAngle in range(45,56,15): # 俯仰角（18，56，5）（改）
+    for incidentAngle in range(17,56,70): # 俯仰角（18，56，5）（改）
         # 根据下视角和方位角计算相机位置
         # 相机初始位置,即方位角为0时
         Z = 5000*np.cos(incidentAngle/180 * np.pi)
@@ -179,15 +157,12 @@ def mkdataset(model_name, model_info_folder, model_xml_file, current_save_folder
         RayH_change = np.sqrt((RayH+1e6/np.cos(incidentAngle/180 * np.pi))**2-(1e6)**2)-1e6/np.cos(incidentAngle/180 * np.pi)*np.sin(incidentAngle/180 * np.pi)
         x_cut_change = np.sqrt((x_cut+1e6/np.cos(incidentAngle/180 * np.pi))**2-(1e6)**2)-1e6/np.cos(incidentAngle/180 * np.pi)*np.sin(incidentAngle/180 * np.pi)
         
-        for j in range(0,36,120): # 方位角0-360度 20度一个（改）
+        for j in range(0,36,10): # 方位角0-360度 20度一个（改）
             # 方位角设置
             current_degree = j*10 # 方位角间隔2*10度（改）
             # print('current degree:'+str(current_degree));
             # 设置存储文件
-            current_name = str(incidentAngle)+'_'+str(current_degree);
-            # current_name = 'image_'+str(j*10);``
-            current_save_name = current_mid_folder + '/' + current_name
-            os.makedirs(current_save_name)
+            current_name = str(incidentAngle)+'_'+str(current_degree)
 
             # 步骤1：初始化pov、xml文件
 
@@ -227,47 +202,6 @@ def mkdataset(model_name, model_info_folder, model_xml_file, current_save_folder
                 f.writelines(content)
             f.close()
 
-            # xml
-            # 取出xml模板
-            model_xml_dict = xmlFileToDict(model_xml_file)
-            current_xml_dict = xmlFileToDict(xmlfilename)
-            # 更新target_info
-            timestamp16 = CurrTime().timestamp16
-            model_xml_dict["ndm"]["body"]["target_info"].update({"target_id": timestamp16})
-            model_xml_dict["ndm"]["body"]["target_info"].update({"target_name": current_xml_dict["ndm"]["body"]["target_info"]["target_model"]+'_'+timestamp16})
-            model_xml_dict["ndm"]["body"]["target_info"].update({"nation": current_xml_dict["ndm"]["body"]["target_info"]["country"]})
-            if target_type != 'TK':
-                model_xml_dict["ndm"]["body"]["target_info"].update({"level_3_class": current_xml_dict["ndm"]["body"]["target_info"]["label3"]})
-                model_xml_dict["ndm"]["body"]["target_info"].update({"level_4_class": current_xml_dict["ndm"]["body"]["target_info"]["label4"]})
-            if model_name == 'DDZD' or model_name == 'JC' or model_name == 'GK':
-                model_xml_dict["ndm"]["body"]["target_info"].update({"level_1_class": ''})
-                model_xml_dict["ndm"]["body"]["target_info"].update({"level_2_class": ''})
-                model_xml_dict["ndm"]["body"]["target_info"].update({"level_3_class": ''})
-                model_xml_dict["ndm"]["body"]["target_info"].update({"level_4_class": ''})
-            model_xml_dict["ndm"]["body"]["target_info"].update({"target_model": current_xml_dict["ndm"]["body"]["target_info"]["target_model"]})
-            model_xml_dict["ndm"]["body"]["target_info"].update({"military_base": military_base})
-            model_xml_dict["ndm"]["body"]["target_info"].update({"base_coordinate": base_coordinate})
-            model_xml_dict["ndm"]["body"]["target_info"].update({"aspect_angle": current_degree-(97.4477903825153-90)})
-            model_xml_dict["ndm"]["body"]["target_info"].update({"model_path": model_name+'.glb'})
-            model_xml_dict["ndm"]["body"]["target_info"].update({target_flag1+'_length': current_xml_dict["ndm"]["body"]["target_info"][target_flag2+'_length']})
-            model_xml_dict["ndm"]["body"]["target_info"].update({target_flag1+'_width': current_xml_dict["ndm"]["body"]["target_info"][target_flag2+'_width']})
-            model_xml_dict["ndm"]["body"]["target_info"].update({target_flag1+'_height': current_xml_dict["ndm"]["body"]["target_info"][target_flag2+'_height']})
-            if target_flag1 == 'jc':
-                model_xml_dict["ndm"]["body"]["target_info"].update({"draft": current_xml_dict["ndm"]["body"]["target_info"]["depth"]})
-                model_xml_dict["ndm"]["body"]["target_info"].update({"loaded_displacement": current_xml_dict["ndm"]["body"]["target_info"]["full_loaded_displacement"]})
-                model_xml_dict["ndm"]["body"]["target_info"].update({"standard_displacement": current_xml_dict["ndm"]["body"]["target_info"]["tonnage"]})
-            # 更新image_info
-            model_xml_dict["ndm"]["body"]["image_info"].update({"chip_id": timestamp16})
-            model_xml_dict["ndm"]["body"]["image_info"].update({"chip_name": model_xml_dict["ndm"]["body"]["target_info"]["target_name"]+'.tiff'})
-            model_xml_dict["ndm"]["body"]["image_info"].update({"chip_path": model_xml_dict["ndm"]["body"]["target_info"]["target_name"]+'.tiff'})
-            model_xml_dict["ndm"]["body"]["image_info"]["relation"].update({"incident_angle": incidentAngle})
-            model_xml_dict["ndm"]["body"]["image_info"]["relation"].update({"incident_direction": current_degree})
-            model_xml_dict["ndm"]["body"]["image_info"]["sar_payload"].update({"wave_band": wave_band})
-            model_xml_dict["ndm"]["body"]["image_info"]["sar_payload"].update({"polar_mode": polarization})
-            model_xml_dict["ndm"]["body"]["image_info"]["sar_payload"].update({"range_resolution": rngRho})
-            model_xml_dict["ndm"]["body"]["image_info"]["sar_payload"].update({"azimuth_resolution": azmRho})
-            # 后续再储存
-
             # 步骤2：对pov文件进行电磁建模
             runCommand = 'povray '+ savefilename +' -D +W'+str(int(1.2*RayW))+' +H'+str(int(1.2*RayH_change))
             result = subprocess.run(runCommand, shell=True, capture_output=True, text=True, cwd=save_txt_folder_name, check=True)
@@ -304,70 +238,10 @@ def mkdataset(model_name, model_info_folder, model_xml_file, current_save_folder
             else:
                 print("回波仿真完成！")
             
-            # 步骤5：进行成像处理并存为.tiff文件
-            save_tiff_path = current_save_name + '/' + model_xml_dict["ndm"]["body"]["target_info"]["target_name"] + '.tiff'
-            save_range_path = current_save_name + '/' + model_xml_dict["ndm"]["body"]["target_info"]["target_name"] + '_hrrp.txt'
-            save_png_path = current_save_name + '/' + model_xml_dict["ndm"]["body"]["target_info"]["target_name"] + '.png'
+            # 步骤5：进行成像处理并存为.png文件
+            save_png_path = current_save_folder + '/' + current_name + '.png'
             # 成像
             imaging_current = imaging(echoResultPath, beta_range, beta_azimuth, model_name, target_type, Rho) #
             imaging_current.imaging()
             imaging_current.dataExpose(model_name,2) # 保存成像结果为成员
-            # 一维距离向保存  
-            # np.savetxt(save_range_path, np.c_[np.array(abs(imaging_current.range_image))], fmt='%f',delimiter='\n')
-            with open(save_range_path, 'a') as file:
-                for index, value in zip((np.array(range(imaging_current.range_image.size))+1)*imaging_current.dr, np.array(abs(imaging_current.range_image))):
-                    file.write(str(index)+','+str(value)+'\n')
-            file.close()
-
-            # plt.figure()
-            # plt.plot(imaging_current.range_image)
-            # plt.savefig(current_save_name + '/'+'yiweijulixiang.png', pad_inches=0)
-            # plt.close()
-            # 更新image_info
-            model_xml_dict["ndm"]["body"]["image_info"].update({"imaging_time": CurrTime().localeTime})
-            model_xml_dict["ndm"]["body"]["image_info"].update({"resolution": imaging_current.dazm})
-            # 更新inversion_info
-            model_xml_dict["ndm"]["body"]["inversion_info"]["electromagnetic_scattering_characteristic"].update({"HRRP_path": model_xml_dict["ndm"]["body"]["target_info"]["target_name"]+'_hrrp.txt'})
-            # 储存.tiff
-            tiff.imwrite(save_tiff_path, np.array(imaging_current.img, dtype=np.uint8))     
-            addGeoInfoToTiff(save_tiff_path, save_tiff_path, scn['tgLng'], scn['tgLat'], imaging_current.dr, imaging_current.dazm)
-            # save_png_path = current_save_name + '/' + model_xml_dict["ndm"]["body"]["target_info"]["target_name"] + '.png'
-            mpimg.imsave(save_png_path, np.array(imaging_current.img, dtype=np.uint8), cmap=plt.cm.gray)
-
-            # 步骤6：进行目标特征提取
-            save_scatter_Path = current_save_name + '/' + model_xml_dict["ndm"]["body"]["target_info"]["target_name"] + '_attr.txt'
-            try:
-                # 参数设置
-                dazm = imaging_current.dazm
-                dr = imaging_current.dr
-                imgMeta =  {"azimuth_resolution": dazm, "distance_resolution": dazm}
-                # 调用特征提取算法并存储散射中心txt
-                worker = Extractor()
-                worker.performExtract(save_png_path, dazm, target_type, dr)
-                # 删除PARA:save_scatter_path
-                # 将tiff改为png格式交给特征提取进行处理 （原始回波数据效果不理想）（改）
-                # plt.figure()
-                # plt.imshow(worker.scatterImg)
-                # plt.axis('off')
-                # plt.savefig(current_save_name + '/'+'sanshezhongxin.png', bbox_inches='tight', pad_inches=0)
-                # plt.close()
-                # 封装提取的特征
-                meta = {
-                    "retrieval_length": worker.tgInfo['length'],
-                    "retrieval_width": worker.tgInfo['width'],
-                    "area": float(worker.tgInfo['length']) * float(worker.tgInfo['width']),
-                    "aspect_angle": worker.tgInfo['rotateAng'],
-                }
-                # 更新inversion_info
-                model_xml_dict["ndm"]["body"]["inversion_info"].update(meta)
-                model_xml_dict["ndm"]["body"]["inversion_info"].update({"incidence_angle": incidentAngle})
-                model_xml_dict["ndm"]["body"]["inversion_info"]["electromagnetic_scattering_characteristic"].update({"attribute_scatter": model_xml_dict["ndm"]["body"]["target_info"]["target_name"] + '_attr.txt'})
-                # 更新存储xml文件
-                savexmlname = current_save_name + '/' + model_xml_dict["ndm"]["body"]["target_info"]["target_name"] + '.xml'
-                dictToXmlFile(savexmlname, model_xml_dict)
-                zip_folder(current_save_name, current_save_folder + current_name +'.zip')
-                # zip_folder(current_save_name, current_save_name+'.zip')
-                # shutil.rmtree(current_save_name)
-            except Exception as e:
-                print(e)
-                continue    
+            mpimg.imsave(save_png_path, np.array(imaging_current.img, dtype=np.uint8), cmap=plt.cm.gray)   

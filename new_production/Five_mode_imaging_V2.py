@@ -286,8 +286,15 @@ class imaging:
         # 同一类型其他分辨率大小则按照不同分辨率下的原始图像比例关系进行缩放
         # 即：两种分辨率下的【原始图像大小比例】等于两种分辨率下的【裁剪图像大小比例】
 
+        # # 获取矩阵的大小
+        rows, cols = I.shape
+        # # 打印矩阵的大小
+        print("图像大小：{} x {}".format(rows, cols))
+
         # 1.飞机裁剪
-        if self.model_type == "FJ":
+        if self.model_name == "RC":
+            pass
+        elif self.model_type == "FJ":
             l = int(I.shape[1]/2 - I.shape[0]/2*0.8); r = int(I.shape[1]/2 + I.shape[0]/2*0.8)
             u = int(I.shape[0]*0.1+1); d = int(I.shape[0]*0.9)
             I = np.array(I[u:d,l:r])
@@ -314,7 +321,7 @@ class imaging:
 
         
         # 2.航母+舰船+HF/ZHBJC两种目标的裁剪
-        elif self.model_type == 'HM' or self.model_name == 'HF' or self.model_name == 'ZHBJC':
+        elif self.model_type == 'HM' or self.model_name == 'HF' or self.model_name == 'CYHM':
             if self.rho == 1:
                 size = 478
             elif self.rho == 2:
@@ -339,15 +346,16 @@ class imaging:
                     size = 1300
             u = int(I.shape[0]/2 - size/2); l = int(I.shape[1]/2 - size/2)
             I = np.array(I[u:u+size,l:l+size])       
+        
 
         # 3.地面目标
         else: 
             if self.rho == 0.3:
                 size = 128
             elif self.rho == 0.2:
-                size = 192
+                size = 160
             else: # self.rho == 0.5:
-                size = 80
+                size = 64
             u = int(I.shape[0]/2 - size/2); l = int(I.shape[1]/2 - size/2)
             I = np.array(I[u:u+size,l:l+size])        
 

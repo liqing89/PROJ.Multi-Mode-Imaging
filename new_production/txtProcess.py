@@ -70,7 +70,8 @@ def processForSingle(index_single, X, Y, Z, Intens, povname, IncidentAngle,Azimu
             for i in range(len(Z1)):
                 beta = 0.8 # 幂次
                 if Azimuth == 0: #机头正对来波
-                    if X1[i] > -20 and X1[i] < -5 and Y1[i] > -5 and Y1[i] < 5 and Z1[i]>1 and count_max< 15 : # 锁定机头
+                    if Y1[i] > -20 and Y1[i] < -5 and X1[i] > -5 and X1[i] < 5 and Z1[i]>1 and count_max< 15 : # 锁定机头 #0度朝上
+                    # if X1[i] > -20 and X1[i] < -5 and Y1[i] > -5 and Y1[i] < 5 and Z1[i]>1 and count_max< 15 : # 锁定机头
                         count_max = count_max + 1;
                         cos_incident = np.cos(IncidentAngle) # 20度俯仰角最强 依次减弱
                         Intens1[i] = Intens1[i] * 0.1 * (cos_incident)  /  ( Intens1[i] ** (beta) ) 
@@ -120,7 +121,7 @@ def processForDouble(index_double, X, Y, Z, Intens, povname,IncidentAngle,Azimut
                     Intens2[i] = (1+np.random.rand(1)*0.2)*0.05
                 else:
                     Intens2[i] = (1+np.random.rand(1)*0.2)*0.35
-        if filename == 'HMBD': # lij的version是model_name
+        if "HMBD" in filename: # lij的version是model_name
             for i in range(len(Intens2)):
                 if Intens2[i] > 0.05:
                     Intens2[i] = (1+np.random.rand(1)*0.2)*0.15
@@ -140,30 +141,30 @@ def processForDouble(index_double, X, Y, Z, Intens, povname,IncidentAngle,Azimut
 
     elif povname == 'FJ':  # 分别讨论三类隐身飞机：B2 / F22 / F35 的二次散射
         
-        if "B2" in filename: # 1. B2隐身飞机二次散射的处理方式
-            count_max = 0; # 限制高亮点次数
-            for i in range(len(Intens2)):
+        # if "B2" in filename: # 1. B2隐身飞机二次散射的处理方式
+        #     count_max = 0 # 限制高亮点次数
+        #     for i in range(len(Intens2)):
 
-            # 左手系旋转矩阵
-                R = np.array([[np.cos(-Azimuth*np.pi/180), -np.sin(-Azimuth*np.pi/180)],
-                                [np.sin(-Azimuth*np.pi/180), np.cos(-Azimuth*np.pi/180)]])
+        #     # 左手系旋转矩阵
+        #         R = np.array([[np.cos(-Azimuth*np.pi/180), -np.sin(-Azimuth*np.pi/180)],
+        #                         [np.sin(-Azimuth*np.pi/180), np.cos(-Azimuth*np.pi/180)]])
                         
-                [X2_origin,Y2_origin] = np.dot(R, np.array([X2[i], Y2[i]]))
+        #         [X2_origin,Y2_origin] = np.dot(R, np.array([X2[i], Y2[i]]))
 
-                # 电磁散射
-                beta = 0.8 # 幂次
-                if X2_origin > 0 and X2_origin < 10 and Y2_origin > -10 and Y2_origin < 10: # 锁定排气管,x-axis指向机头
-                    if count_max < 2:
-                        Intens2[i] = Intens2[i] * 0.05 /  ( Intens2[i] ** (beta) ) 
-                        count_max = count_max + 1
-                    else:
-                        Intens2[i] = Intens2[i] * 0.015 /  ( Intens2[i] ** (beta) )
-                else:
-                    pass
+        #         # 电磁散射
+        #         beta = 0.8 # 幂次
+        #         if X2_origin > 0 and X2_origin < 10 and Y2_origin > -10 and Y2_origin < 10: # 锁定排气管,x-axis指向机头
+        #             if count_max < 2:
+        #                 Intens2[i] = Intens2[i] * 0.05 /  ( Intens2[i] ** (beta) ) 
+        #                 count_max = count_max + 1
+        #             else:
+        #                 Intens2[i] = Intens2[i] * 0.015 /  ( Intens2[i] ** (beta) )
+        #         else:
+        #             pass
 
-        elif "B1B" in filename:
+        if "B1B" in filename:
             count_max = 0; # 限制高亮点次数
-            beta = 0.8;
+            beta = 0.8
             for i in range(len(Z2)):
                 if Z2[i] < 1: # ground
                     Intens2[i] = Intens2[i] * 0.06 /  ( Intens2[i] ** (beta) ) # 0.06->0.08
@@ -180,10 +181,10 @@ def processForDouble(index_double, X, Y, Z, Intens, povname,IncidentAngle,Azimut
                     Intens2[i] =  Intens2[i] * 0.1
 
         elif "F22" in filename or "F35" in filename: # F22/F35隐身飞机二次散射的处理方式
-            count_max = 0;
+            count_max = 0
             for i in range(len(Intens2)):
                 if count_max<10:
-                    count_max = count_max + 1;
+                    count_max = count_max + 1
                     Intens2[i] =  Intens2[i] * 0.5
                 else:
                     Intens2[i] =  Intens2[i] * 0.1
@@ -237,7 +238,7 @@ def  processForTriple(index_Triple, X, Y, Z, Intens, povname,IncidentAngle,filen
     elif povname == 'FJ':
         if "F22" in filename or "F35" in filename or "EA18G" in filename: #小型战斗机三次散射
             for j in range(len(Intens3)):
-                Intens3[j] =  1 * Intens3[j] * np.cos(50/180*np.pi)/np.cos(IncidentAngle/180*np.pi) ;
+                Intens3[j] =  1 * Intens3[j] * np.cos(50/180*np.pi)/np.cos(IncidentAngle/180*np.pi)
         else:
             pass
     
